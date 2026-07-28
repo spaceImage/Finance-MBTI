@@ -1,3 +1,14 @@
+# Node
+node_modules/
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+
+# Frontend build output
+frontend/dist/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
