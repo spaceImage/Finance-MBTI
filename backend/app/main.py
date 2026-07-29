@@ -23,7 +23,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS middleware for Next.js frontend communication
+# Allow the React SPA on port 3001 to call the FastAPI server on port 8001.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
@@ -42,6 +42,7 @@ def read_root():
         "status": "online",
         "backend_port": settings.PORT
     }
+
 
 if __name__ == "__main__":
     import uvicorn

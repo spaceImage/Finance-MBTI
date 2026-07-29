@@ -1,102 +1,113 @@
-import { useState, useEffect } from 'react';
-import { fetchQuestions, submitDiagnosis, QuestionItem, AnswerItem, SubmitDiagnosisResponse } from '../services/api';
+import { useState, useEffect, useCallback } from "react";
+import {
+  fetchQuestions,
+  submitDiagnosis,
+  QuestionItem,
+  AnswerItem,
+  SubmitDiagnosisResponse,
+} from "../services/api";
 
 export function useQuizSession() {
-  const [sessionUuid, setSessionUuid] = useState<string>('');
-  const [nickname, setNickname] = useState<string>('');
-  const [started, setStarted] = useState<boolean>(false);
   const [questions, setQuestions] = useState<QuestionItem[]>([]);
-  const [currentIndex, setCurrentIndex] = useState<number>(0);
-  const [answers, setAnswers] = useState<AnswerItem[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [answers, setAnswers] = useState<number[]>([]);
   const [result, setResult] = useState<SubmitDiagnosisResponse | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [submitting, setSubmitting] = useState<boolean>(false);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const startQuiz = (name: string) => {
-    setNickname(name);
-    setStarted(true);
-  };
-
   useEffect(() => {
-    // Generate UUID or load from sessionStorage
-    let uuid = sessionStorage.getItem('dotori_session_uuid');
-    if (!uuid) {
-      uuid = crypto.randomUUID();
-      sessionStorage.setItem('dotori_session_uuid', uuid);
-    }
-    setSessionUuid(uuid);
-
-    // Fetch Q1~Q7 questions
     fetchQuestions()
       .then((data) => {
         setQuestions(data);
+        setAnswers(new Array(data.length).fill(-1));
         setLoading(false);
       })
       .catch((err) => {
-        setError(err.message || '데이터를 불러오지 못했습니다.');
+        setError(err.message || "질문을 불러오지 못했습니다. 백엔드 서버를 확인해 주세요.");
         setLoading(false);
       });
   }, []);
 
-  const selectAnswer = (choiceIndex: number) => {
-    if (!questions[currentIndex]) return;
+  const selectAnswer = useCallback(
+    (choiceIndex: number) => {
+      if (submitting) return;
+      if (!questions[currentIndex]) return;
 
-    const qId = questions[currentIndex].id;
-    const newAnswers = [...answers.filter((a) => a.question_id !== qId), { question_id: qId, choice_index: choiceIndex }];
-    setAnswers(newAnswers);
+      const newAnswers = [...answers];
+      newAnswers[currentIndex] = choiceIndex;
+      setAnswers(newAnswers);
 
-    if (currentIndex < questions.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-    } else {
-      // Last question reached, submit automatically!
-      handleSubmit(newAnswers);
-    }
-  };
+      if (currentIndex < questions.length - 1) {
+        // Auto advance
+        setTimeout(() => setCurrentIndex((i) => i + 1), 200);
+      } else {
+        // Last question – submit
+        handleSubmit(newAnswers);
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [currentIndex, questions, answers, submitting]
+  );
 
-  const prevQuestion = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
-    }
-  };
-
-  const handleSubmit = async (finalAnswers: AnswerItem[]) => {
-    setSubmitting(true);
+  const handleSubmit = async (finalAnswers: number[]) => {
     setError(null);
+
+    const hasInvalidAnswer = finalAnswers.some(
+      (answer) => !Number.isInteger(answer) || answer < 0 || answer > 3,
+    );
+    if (hasInvalidAnswer) {
+      setError("모든 질문에 답한 뒤 다시 시도해 주세요.");
+      return;
+    }
+
+    setSubmitting(true);
+
+    let uuid = sessionStorage.getItem("dotori_session_uuid");
+    if (!uuid) {
+      uuid = crypto.randomUUID();
+      sessionStorage.setItem("dotori_session_uuid", uuid);
+    }
+
+    const payload: AnswerItem[] = questions.map((q, i) => ({
+      question_id: q.id,
+      choice_index: finalAnswers[i],
+    }));
+
     try {
-      const res = await submitDiagnosis(sessionUuid, finalAnswers);
+      const res = await submitDiagnosis(uuid, payload);
+      sessionStorage.setItem("dotori-result", JSON.stringify(res));
       setResult(res);
-    } catch (err: any) {
-      setError(err.message || '진단 제출 중 오류가 발생했습니다.');
-    } finally {
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "결과를 계산하지 못했습니다. 잠시 후 다시 시도해 주세요.";
+      setError(message);
       setSubmitting(false);
     }
   };
 
-  const restartQuiz = () => {
-    setCurrentIndex(0);
-    setAnswers([]);
-    setResult(null);
-    setNickname('');
-    setStarted(false);
-  };
+  const prevQuestion = useCallback(() => {
+    if (currentIndex > 0) {
+      setCurrentIndex((i) => i - 1);
+    }
+  }, [currentIndex]);
+
+  const progress = questions.length
+    ? Math.round(((currentIndex + 1) / questions.length) * 100)
+    : 0;
 
   return {
-    sessionUuid,
-    nickname,
-    started,
-    startQuiz,
     questions,
     currentIndex,
-    currentQuestion: questions[currentIndex],
+    currentQuestion: questions[currentIndex] ?? null,
     totalQuestions: questions.length,
     answers,
     result,
     loading,
     submitting,
     error,
+    progress,
     selectAnswer,
     prevQuestion,
-    restartQuiz,
   };
 }

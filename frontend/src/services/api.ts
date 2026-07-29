@@ -1,4 +1,5 @@
-const API_BASE_URL = 'http://localhost:8001/api/diagnosis';
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8001/api/diagnosis";
 
 export interface AnswerItem {
   question_id: number;
@@ -50,16 +51,19 @@ export interface SubmitDiagnosisResponse {
 export async function fetchQuestions(): Promise<QuestionItem[]> {
   const res = await fetch(`${API_BASE_URL}/questions`);
   if (!res.ok) {
-    throw new Error('문항 데이터를 불러오는 데 실패했습니다.');
+    throw new Error("문항 데이터를 불러오는 데 실패했습니다.");
   }
   return res.json();
 }
 
-export async function submitDiagnosis(sessionUuid: string, answers: AnswerItem[]): Promise<SubmitDiagnosisResponse> {
+export async function submitDiagnosis(
+  sessionUuid: string,
+  answers: AnswerItem[]
+): Promise<SubmitDiagnosisResponse> {
   const res = await fetch(`${API_BASE_URL}/submit`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       session_uuid: sessionUuid,
@@ -68,15 +72,19 @@ export async function submitDiagnosis(sessionUuid: string, answers: AnswerItem[]
   });
 
   if (!res.ok) {
+    let message = "진단 제출에 실패했습니다.";
     try {
       const errBody = await res.json();
       const detail = Array.isArray(errBody.detail)
-        ? errBody.detail.map((d: any) => d.msg).join(', ')
+        ? errBody.detail.map((d: { msg: string }) => d.msg).join(", ")
         : errBody.detail;
-      throw new Error(detail || '진단 제출에 실패했습니다.');
+      if (typeof detail === "string" && detail.trim()) {
+        message = detail;
+      }
     } catch {
-      throw new Error('진단 제출에 실패했습니다.');
+      // Keep the default message when the server response is not JSON.
     }
+    throw new Error(message);
   }
 
   return res.json();

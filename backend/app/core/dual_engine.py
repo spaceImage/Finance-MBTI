@@ -59,7 +59,8 @@ def calculate_diagnosis(answers: list[dict]):
         crisis_level_key = "RED"
         
     crisis_info = TYPES_INFO["crisis_levels"][crisis_level_key]
-    risk_color = crisis_info["color"]
+    # API contract uses stable enum values; presentation belongs to the client.
+    risk_color = crisis_level_key
     crisis_status = crisis_info["status"]
     
     # 3. MBTI Type Info Lookup
