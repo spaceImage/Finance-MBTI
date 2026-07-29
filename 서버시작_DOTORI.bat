@@ -13,10 +13,11 @@ cd /d "%~dp0"
 start "DOTORI Backend (Port 8001)" cmd /k "python backend\app\main.py"
 
 :: Start Frontend on Port 3001
-start "DOTORI Frontend (Port 3001)" cmd /k "cd frontend && cmd /c npm run dev"
+start "DOTORI Frontend (Port 3001)" cmd /k "cd frontend && npm.cmd run dev"
 
 echo.
 echo DOTORI servers are starting!
 echo Opening http://localhost:3001 in your browser...
 timeout /t 3 >nul
 start "" http://localhost:3001
+
