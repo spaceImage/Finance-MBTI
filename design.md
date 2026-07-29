@@ -33,9 +33,12 @@
 ### 0.3 기준 환경
 
 ```yaml
-framework: Next.js 16 App Router
+framework: React 19 SPA + Vite
 language: TypeScript + React
 styling: global CSS
+frontend_server: Vite 3001
+api_server: FastAPI 8001
+database: SQLite
 reference_viewport:
   width: 390px
   height: 844px
@@ -53,15 +56,15 @@ root_font:
 - 모바일 캔버스 너비 `390px`
 - 좌우 패딩 `16px`
 - 핵심 외곽선 색 `#173F32`
-- 카드 외곽선 두께 `3px`
+- 일반 카드 외곽선 두께 `3px` (`/start`의 전체 배경형 히어로 제외)
 - 카드 그림자 방향: 오른쪽 아래
-- 시작 화면 히어로 높이 `398px`
+- 시작 화면 히어로 높이 `480px`
 - 질문 카드 높이 `258px`
 - 제공된 16개 도토리 이미지
 - 신호등 이미지 `traffic-light.png`
 - 위험 신호 API 값 `GREEN`, `YELLOW`, `RED`
 - 닉네임 최대 길이 12자
-- 질문 응답값: 선택지 순서 기준 `1`부터 시작하는 정수
+- 질문 응답값: UI 상태와 API `choice_index` 모두 `0..3`, 미응답은 `-1`
 
 ## 1. 문서 목적
 
@@ -276,13 +279,20 @@ root_font:
 @import url("https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@500;600;700;800;900&display=swap");
 ```
 
+두 서체는 모두 SIL Open Font License 1.1로 배포된다. 상업용 웹 서비스에
+사용·임베드할 수 있으므로 G마켓 산스로 교체하지 않는다. 폰트 파일 자체를
+단독 판매하면 안 되며, 폰트를 재배포할 때는 해당 라이선스를 함께 제공한다.
+
+- [Black Han Sans 공식 OFL](https://github.com/google/fonts/blob/main/ofl/blackhansans/OFL.txt)
+- [Noto Sans KR 공식 OFL](https://github.com/google/fonts/blob/main/ofl/notosanskr/OFL.txt)
+
 ### 6.2 권장 타입 스케일
 
 | 용도 | 크기 | 행간 | 굵기 |
 |---|---:|---:|---:|
 | 시작 화면 브랜드 제목 | `55px` | `0.9` | Black Han Sans |
-| 결과 유형 강조 | `35–48px` | `1.05` | Black Han Sans |
-| 설문 질문 | `34px` | `1.15` | Black Han Sans |
+| 결과 유형 강조 | `36px` | `1.05` | Black Han Sans |
+| 설문 질문 | `27px` | `1.25` | Black Han Sans |
 | 카드 제목 | `20px` | `1.4` | 800–900 |
 | 주요 CTA | `20px` | `1.25` | 900 |
 | 본문 강조 | `16px` | `1.5` | 800 |
@@ -458,17 +468,18 @@ border-radius: 18px 12px 20px 14px;
 
 - 높이 `58px`
 - 캡슐형 `29px` 반경
-- 연두 배경 `#D8EFC8`
+- 도토리색 배경 `#D9A86C`
 - 2px 테두리
 - 입력 텍스트 `15px / 800`
+- 플레이스홀더와 글자 수 표시는 짙은 도토리색 `#7C4829`
 - 오른쪽에 글자 수 표시
-- 포커스 시 반투명 녹색 링
+- 포커스 시 반투명 도토리색 링
 
 검증 메시지가 추가될 경우 입력 바로 아래에 배치하며, 빨강만 사용하지 말고 문구와 아이콘을 함께 제공한다.
 
 ### 8.8 종이 카드
 
-예: `.start-note`, `.summary-card`
+예: `.start-note`
 
 - 배경 `--paper`
 - 3px 외곽선
@@ -476,13 +487,17 @@ border-radius: 18px 12px 20px 14px;
 - 녹색 오프셋 그림자
 - 상단에 테이프 또는 라벨 부착 가능
 
-### 8.9 추천 카드
+`.summary-card`는 결과 화면 전용 배경 `#D7FAF7`을 사용하므로 이 공통
+`--paper` 배경 규칙의 대상에서 제외한다.
+
+### 8.9 추천 사각형 설명 영역
 
 - 2열 그리드
-- 짙은 녹색 배경과 흰색 텍스트
-- 카테고리는 연두색 작은 칩
-- 제목, 설명, 키워드 순서
-- 작은 화면에서도 각 카드의 최소 너비가 깨지지 않게 `minmax(0, 1fr)` 사용
+- 별도의 추천 카드 배경과 테두리는 사용하지 않음
+- `정부지원`, `은행권` 카테고리는 `#9EDAF1` 배경의 긴 타원형 라벨
+- 추천 제목과 부가 설명만 베이지 `#F2DFC0` 사각형 영역 안에 배치
+- 긴 타원형 라벨은 사각형 영역 바깥 위쪽에 배치
+- 작은 화면에서도 각 항목의 최소 너비가 깨지지 않게 `minmax(0, 1fr)` 사용
 
 ### 8.10 답변 선택지
 
@@ -615,21 +630,25 @@ Constraints: no text, no labels, no watermark, no cast shadow, no reflection.
 ### 구성 순서
 
 1. 공통 헤더
-2. 파란색 히어로 카드
+2. 전체 배경으로 확장된 하늘·언덕 히어로
 3. `CHECK POINT` 종이 카드
 4. 닉네임 입력
 5. 주요 CTA
 
-### 히어로 카드
+### 전체 배경형 히어로
 
-- 높이 `398px`
-- 파란 하늘 배경
-- 아래쪽에 잔디 언덕
+- 높이 `480px`
+- 헤더와 좌우 여백까지 이어지는 전체 파란 하늘 배경
+- 화면 중간부터 체크포인트 카드 바깥까지 이어지는 넓은 잔디 언덕
+- 제목을 가리지 않는 하늘 영역에 반투명 구름 군집 7개
+- 초록 언덕에는 둥근 도트형 풀 군집 7개
 - 왼쪽에 큰 브랜드 제목
 - 오른쪽 아래에 탐구 도토리
 - 상단에 노란 질문 스티커
+- 히어로 자체의 사각형 테두리, 둥근 모서리, 카드 그림자는 사용하지 않음
 
-제목은 `도토리 / 금융 DNA` 두 줄로 구성하고, 크림색 채움·짙은 외곽선·단단한 텍스트 그림자를 사용한다.
+제목은 `도토리 / 금융 DNA` 두 줄로 구성하고 크림색 채움과 짙은 외곽선을
+사용한다. 가독성을 떨어뜨리는 `text-shadow`는 사용하지 않는다.
 
 ### 신호등 안내 카드
 
@@ -734,11 +753,13 @@ Constraints: no text, no labels, no watermark, no cast shadow, no reflection.
 
 ### DNA 리포트
 
-- 흰 종이 카드
+- 배경 `#D7FAF7`
 - 상단 노란 `DNA REPORT` 테이프
-- 한 문단 요약
+- `[성향] 캐릭터명 — 위험등급` 형식의 요약 문구는 표시하지 않음
 - 정부지원 및 은행권 추천을 2열로 배치
-- 핵심 키워드는 캡슐형 칩으로 표시
+- 베이지 `#F2DFC0` 사각형 설명 영역을 표시
+- 카테고리는 파란 긴 타원, 제목과 부가 설명은 사각형 영역 안에 표시
+- 핵심 키워드는 중앙 정렬된 큰 캡슐형 칩으로 표시
 
 ### 위험 신호 카드
 
@@ -987,7 +1008,7 @@ frontend/
 - 캐릭터와 신호등 PNG의 실제 표시 크기에 맞는 리사이즈 버전을 제공한다.
 - 투명 영역이 과도하게 넓은 이미지는 여백을 제거한다.
 - 품질 차이가 없다면 WebP도 고려한다.
-- Next.js의 `Image` 컴포넌트 도입 시 레이아웃 크기를 명시해 이동을 방지한다.
+- `<img>`에는 명시적인 크기 또는 CSS 레이아웃 크기를 지정해 이동을 방지한다.
 
 ---
 
@@ -1081,14 +1102,16 @@ frontend/
 ```text
 frontend/
 ├─ package.json
-├─ next.config.ts
+├─ vite.config.ts
+├─ index.html
 ├─ src/
-│  ├─ app/
-│  │  ├─ globals.css
-│  │  ├─ layout.tsx
-│  │  ├─ page.tsx
-│  │  ├─ start/page.tsx
-│  │  └─ survey/page.tsx
+│  ├─ main.tsx
+│  ├─ App.tsx
+│  ├─ styles.css
+│  ├─ pages/
+│  │  ├─ ResultPage.tsx
+│  │  ├─ StartPage.tsx
+│  │  └─ SurveyPage.tsx
 │  ├─ hooks/useQuizSession.ts
 │  └─ services/api.ts
 └─ public/
@@ -1125,7 +1148,7 @@ URL:  /illustrations/traffic-light.png
 
 ## 21.2 실행 계약
 
-프런트엔드 실행 명령:
+React SPA 실행 명령:
 
 ```powershell
 cd frontend
@@ -1133,31 +1156,53 @@ npm install
 npm run dev
 ```
 
-기본 URL:
+프런트엔드 기본 URL:
 
 ```text
-http://localhost:3000/start
+http://localhost:3001/start
 ```
 
-포트가 이미 사용 중일 때만 다른 포트를 허용한다.
+FastAPI 백엔드 실행 명령:
 
 ```powershell
-npm run dev -- -p 3100
+cd backend
+$env:PORT=8001
+python app/main.py
 ```
 
-백엔드 API 기본 URL:
+API 기본 URL:
 
 ```text
-http://localhost:8000
+http://localhost:8001/api/diagnosis
 ```
+
+프런트엔드는 3001, 백엔드는 8001을 사용한다. FastAPI는 API와 SQLite
+접근만 담당하며 React 정적 파일을 제공하지 않는다. 프런트엔드 API 기본값은
+`http://localhost:8001/api/diagnosis`이고, 두 서버 간 요청은 CORS 허용
+목록으로 연결한다.
+
+아키텍처:
+
+```text
+Browser
+  └─ React SPA · Vite (:3001)
+       └─ HTTP API
+            └─ FastAPI (:8001)
+                 └─ SQLite (dotori.db)
+```
+
+`/start`, `/survey`, `/` 화면 전환은 React SPA의 브라우저 History API로
+처리한다.
 
 ## 21.3 문서와 메타데이터
 
-루트 레이아웃 MUST 조건:
+`frontend/index.html` MUST 조건:
 
-```tsx
+```html
 <html lang="ko">
-  <body>{children}</body>
+  <body>
+    <div id="root"></div>
+  </body>
 </html>
 ```
 
@@ -1386,6 +1431,12 @@ main.mobile-screen.start-screen
 ├─ section.start-hero
 │  ├─ div.start-cloud.cloud-a
 │  ├─ div.start-cloud.cloud-b
+│  ├─ div.start-cloud.cloud-c
+│  ├─ div.start-cloud.cloud-d
+│  ├─ div.start-cloud.cloud-e
+│  ├─ div.start-cloud.cloud-f
+│  ├─ div.start-cloud.cloud-g
+│  ├─ div.start-grass.grass-a … grass-g
 │  ├─ span.start-sticker
 │  ├─ div.start-title
 │  │  ├─ p
@@ -1395,6 +1446,7 @@ main.mobile-screen.start-screen
 │  │  │  └─ strong "금융 DNA"
 │  │  └─ span "TEST"
 │  ├─ img.start-character-image
+│  ├─ div.start-transition-lens
 │  └─ div.start-hill
 ├─ section.start-note
 │  ├─ span "CHECK POINT"
@@ -1408,9 +1460,10 @@ main.mobile-screen.start-screen
 │     ├─ label
 │     ├─ input
 │     └─ small
-└─ button.start-cta
-   ├─ text
-   └─ span
+├─ button.start-cta
+│  ├─ text
+│  └─ span
+└─ span.animation-status[aria-live="polite"]
 ```
 
 ### 21.9.3 정확한 문구
@@ -1434,36 +1487,78 @@ cta_sub: "시작하기 ↗"
 
 제목과 체크포인트 헤딩의 강제 줄바꿈은 반드시 유지한다.
 
-### 21.9.4 시작 히어로 박스
+### 21.9.4 시작 전체 배경과 히어로
 
 ```css
-.start-hero {
-  height: 398px;
-  border: 3px solid #173f32;
-  border-radius: 16px 11px 20px 14px;
-  background: #9edaf1;
-  box-shadow: 8px 9px 0 #245943;
-  position: relative;
+.start-screen {
+  background: var(--sky);
   overflow: hidden;
+  isolation: isolate;
+}
+
+.start-hero {
+  height: 480px;
+  background: transparent;
+  position: relative;
+  overflow: visible;
 }
 ```
 
 잔디 언덕:
 
 ```css
-.start-hero::after {
+.start-screen::before {
   content: "";
   position: absolute;
-  left: -28px;
-  right: -28px;
-  bottom: -43px;
-  height: 134px;
-  border: 3px solid #173f32;
+  top: 414px;
+  left: -96px;
+  width: 582px;
+  height: 180px;
+  border-top: 3px solid #173f32;
   border-radius: 50% 50% 0 0;
   background: #8fc77a;
-  z-index: 1;
+}
+
+.start-screen::after {
+  content: "";
+  position: absolute;
+  top: 505px;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: #8fc77a;
 }
 ```
+
+#### 하늘 구름 픽셀 배치
+
+모든 좌표는 `.start-hero`의 좌측 상단을 `(0, 0)`으로 삼는다. 구름 본체는
+캡슐형이며 `::before`, `::after` 원형 도트로 봉우리를 만든다.
+
+| 구름 | top | 가로 기준 | width | height | opacity |
+|---|---:|---|---:|---:|---:|
+| `cloud-a` | `18px` | `right: 36px` | `70px` | `28px` | 기본 |
+| `cloud-b` | `72px` | `right: 12px` | `50px` | `20px` | `0.40` |
+| `cloud-c` | `126px` | `right: 72px` | `44px` | `16px` | `0.30` |
+| `cloud-d` | `184px` | `right: 20px` | `62px` | `21px` | `0.42` |
+| `cloud-e` | `248px` | `left: 16px` | `38px` | `14px` | `0.26` |
+| `cloud-f` | `286px` | `right: 106px` | `52px` | `18px` | `0.34` |
+| `cloud-g` | `330px` | `left: 82px` | `30px` | `11px` | `0.24` |
+
+#### 언덕 풀 도트 픽셀 배치
+
+풀 군집의 기본 크기는 `7×17px`, 색상은 `#5F9F5B`이다. 각 군집은 중앙
+캡슐형 잎과 `::before`, `::after`의 좌우 잎으로 구성한다.
+
+| 풀 | top | 가로 기준 | 회전 |
+|---|---:|---|---:|
+| `grass-a` | `374px` | `left: 24px` | `-5deg` |
+| `grass-b` | `396px` | `left: 78px` | `7deg` |
+| `grass-c` | `423px` | `left: 130px` | `-3deg` |
+| `grass-d` | `450px` | `left: 46px` | `4deg` |
+| `grass-e` | `404px` | `right: 18px` | `-7deg` |
+| `grass-f` | `448px` | `right: 88px` | `6deg` |
+| `grass-g` | `435px` | `left: 178px` | `-5deg` |
 
 ### 21.9.5 시작 제목
 
@@ -1490,7 +1585,6 @@ cta_sub: "시작하기 ↗"
   letter-spacing: -0.05em;
   color: #fff7df;
   -webkit-text-stroke: 2px #173f32;
-  text-shadow: 5px 5px 0 #173f32;
 }
 
 .start-title h1 strong {
@@ -1626,15 +1720,20 @@ alt: 돋보기로 금융 생활을 살펴보는 탐구 도토리
   padding: 0 48px 0 16px;
   border: 2px solid #173f32;
   border-radius: 29px;
-  background: #d8efc8;
+  background: #d9a86c;
   color: #173f32;
   font-size: 15px;
   font-weight: 800;
   outline: none;
 }
 
+.nickname-field input::placeholder {
+  color: #7c4829;
+  opacity: 0.9;
+}
+
 .nickname-field input:focus {
-  box-shadow: 0 0 0 4px rgba(57, 124, 85, 0.2);
+  box-shadow: 0 0 0 4px rgba(124, 72, 41, 0.22);
 }
 
 .nickname-field small {
@@ -1643,7 +1742,7 @@ alt: 돋보기로 금융 생활을 살펴보는 탐구 도토리
   bottom: 20px;
   font-size: 9px;
   font-weight: 900;
-  color: #547365;
+  color: #7c4829;
 }
 ```
 
@@ -1657,8 +1756,8 @@ alt: 돋보기로 금융 생활을 살펴보는 탐구 도토리
   padding: 13px 16px;
   border: 3px solid #173f32;
   border-radius: 10px;
-  background: #245943;
-  color: white;
+  background: #faf2c0;
+  color: #173f32;
   box-shadow: 6px 7px 0 #173f32;
   display: flex;
   align-items: center;
@@ -1676,14 +1775,182 @@ alt: 돋보기로 금융 생활을 살펴보는 탐구 도토리
 }
 ```
 
+### 21.9.11 도토리 시작 전환 애니메이션
+
+애니메이션은 `StartPage` 내부의 고정 상태 머신으로 구현한다. 난수, 서버
+응답 시간, 이미지 로딩 시간에 따라 타임라인을 바꾸지 않는다.
+
+```ts
+type AnimationPhase = "idle" | "centering" | "inspecting" | "zooming";
+
+const CENTER_DURATION = 840;
+const INSPECT_DURATION = 1080;
+const ZOOM_DURATION = 880;
+```
+
+| 경과 시간 | 상태 | 화면 동작 | 이징 |
+|---:|---|---|---|
+| `0–840ms` | `centering` | 느낌표 알림 후 도토리가 가로 `-66px` 이동해 가운데로 접근 | `cubic-bezier(0.2, 0.72, 0.24, 1)` |
+| `840–1920ms` | `inspecting` | 중심 위치에서 `-8px…1px` 상하 이동과 `-4.5deg…3deg` 회전으로 돋보기 탐색 표현 | `cubic-bezier(0.45, 0, 0.25, 1)` |
+| `1920–2800ms` | `zooming` | 실제 렌즈 중심의 원형 마스크를 `24px`에서 `1120px`로 확대하고 기존 콘텐츠가 `300ms` 동안 사라짐 | `cubic-bezier(0.58, 0, 0.18, 1)` |
+| `2800ms` | 이동 | History API로 `/survey` 이동 후 첫 질문 렌더링 | 해당 없음 |
+
+도토리 애니메이션의 기준 변환은 다음과 같다.
+
+```css
+/* centering 종료 */
+transform: translateX(-66px) translateY(0) rotate(0);
+
+/* inspecting 중간 핵심 포즈 */
+transform: translateX(-69px) translateY(-7px) rotate(-4deg);
+transform: translateX(-63px) translateY(2px) rotate(3deg);
+```
+
+돋보기 확대 원 `.start-transition-lens`는 `.start-hero` 기준
+`left: 80px`, `top: 328px`, `52×52px`, `4px` 잉크색 테두리로 배치한다.
+이는 중앙으로 이동한 `PEAI.png`의 돋보기 렌즈 위치와 겹쳐야 한다. 확대
+중 배경은 `--paper`, 내부 보조 테두리는 하늘색 `rgba(158, 218, 241,
+0.7)`을 사용한다. 렌즈 안에는 별도 안내 문구를 표시하지 않으며, 확대가
+완료된 다음 프레임에서 설문 첫 질문으로 전환한다.
+
+실행 중 CTA는 다시 눌리지 않도록 비활성화하며 문구를
+`도토리가 찾는 중 / 잠시만요`로 바꾼다. 닉네임은 애니메이션 시작 직전에
+`sessionStorage["dotori-nickname"]`에 저장한다.
+
+브라우저 콘솔 실행 로그 형식은 다음으로 고정한다.
+
+```text
+[DOTORI_START_ANIMATION] phase=centering elapsed_ms=0
+[DOTORI_START_ANIMATION] phase=inspecting elapsed_ms=840
+[DOTORI_START_ANIMATION] phase=zooming elapsed_ms=1920
+[DOTORI_START_ANIMATION] phase=navigate-survey elapsed_ms=2800
+```
+
+실제 스케줄링 오차로 `elapsed_ms`는 수 밀리초 달라질 수 있지만 단계 순서와
+목표 시간은 유지한다. 컴포넌트가 사라지면 등록된 모든 `setTimeout`을
+정리한다. `prefers-reduced-motion: reduce`에서는 이동 효과를 실행하지 않고
+`phase=reduced-motion-skip` 로그를 남긴 뒤 즉시 `/survey`로 이동한다.
+화면 읽기 도구에는 `aria-busy`와 `aria-live` 상태 문구로 같은 단계를
+전달한다.
+
+### 21.9.12 시작 화면 도토리 자연스러운 동작 및 고해상도 돋보기 전환
+
+2026-07-29부터 시작 화면의 도토리 동작은 단순한 직선 이동이 아니라
+`idle → centering → inspecting → zooming`의 연속된 무게 중심 이동으로
+표현한다. React 상태 이름은 유지하며 단계별 시간은 다음 값으로 고정한다.
+
+```ts
+const CENTER_DURATION = 840;
+const INSPECT_DURATION = 1080;
+const ZOOM_DURATION = 880;
+```
+
+| 경과 시간 | 상태 | 동작 명세 |
+|---:|---|---|
+| 대기 | `idle` | `3.4s ease-in-out infinite` 주기로 최대 `5px` 떠오르고 `-0.35deg`에서 `0.8deg`까지 기울어진다. |
+| `0–185ms` | `centering` | 도토리는 정지한다. 머리 위 느낌표가 `10px` 아래에서 나타나 `8px` 위로 튀었다가 사라지는 `420ms` 알림 동작을 먼저 시작한다. |
+| `185–840ms` | `centering` | 우측으로 `5px` 예비동작 후 좌측·위쪽 포물선으로 이동한다. 목표 위치 `translateX(-66px)`에 도착하기 전 `-70px`까지 넘긴 뒤 `-63px` 반동을 거쳐 정착한다. 이동 중 `scale(1.015, 0.985)` 범위의 미세한 눌림을 사용한다. |
+| `840–1920ms` | `inspecting` | 두 번의 서로 다른 탐색 동작을 수행한다. 위치 범위는 `translateX(-70px..-61px)`, `translateY(-8px..1px)`, 회전 범위는 `-4.5deg..3deg`이다. 마지막 `10%` 구간에서 작은 반동을 감쇠해 기준 위치로 돌아온다. |
+| `1920–2800ms` | `zooming` | 도토리는 렌즈를 따라 `-3px..2px` 범위에서 미세 이동한 뒤 `opacity: 0`으로 사라지고, 원형 전환 면이 화면을 덮는다. |
+| `2800ms` | 이동 | `/survey`로 이동한다. |
+
+단계가 바뀔 때 이전 단계의 CSS 애니메이션을 중복 적용하지 않는다.
+`animation-centering`, `animation-inspecting`, `animation-zooming` 각각이
+`.start-character-image`의 `animation` 전체 값을 교체한다. 따라서
+`transform` 애니메이션 간 충돌 없이 직전 단계의 종료 위치와 다음 단계의
+시작 위치가 동일하게 유지된다.
+
+돋보기 확대에는 작은 DOM 요소의 `transform: scale(...)`을 사용하지 않는다.
+작은 `52×52px` 합성 레이어를 19배 확대하면 브라우저가 저해상도 래스터
+표면을 재사용해 확대 초반에 계단 현상과 픽셀 깨짐이 보일 수 있기 때문이다.
+확대 단계에서는 `.start-transition-lens`를 `390px × max(844px, 100vh)`의
+전환 면으로 즉시 전환하고 다음 원형 마스크를 애니메이션한다.
+
+```css
+/* 화면 좌상단 기준 PEAI 이미지의 실제 렌즈 중심: x=118px, y=412px */
+clip-path: circle(24px at 118px 412px);   /* 0~24%, 돋보기 형태 유지 */
+clip-path: circle(31px at 118px 412px);   /* 34%, 확대 시작 */
+clip-path: circle(180px at 118px 412px);  /* 52% */
+clip-path: circle(1120px at 118px 412px); /* 100% */
+```
+
+전환 면은 처음부터 최종 해상도로 그려지고 `clip-path`의 반경만 바뀌므로
+확대 전 구간에서 배경과 테두리가 현재 DPR에 맞춰 다시 래스터화된다.
+렌즈 중심은 기존 PEAI 이미지의 돋보기 위치와 같은 화면 좌표
+`(118px, 412px)`를 유지한다. `inspecting` 단계에서는 별도 전환 원을
+표시하지 않고 PEAI 원본 이미지에 그려진 돋보기만 사용한다. 따라서 캐릭터가
+흔들릴 때 렌즈와 별도 원의 위치가 어긋나는 현상이 없다.
+
+`zooming` 시작 후 첫 `24%` 동안은 `48×48px` 돋보기 테두리와 `24px`
+마스크 반경을 그대로 유지한다. `24%` 이후에만 마스크를 확장하며 테두리는
+`48%`까지 `scale(1.24)`와 함께 자연스럽게 사라진다. 확대 중 레이아웃
+콘텐츠보다 항상 위에 표시되도록 `.animation-zooming .start-hero`와 전환
+면의 `z-index`를 `30`으로 설정한다. 렌즈 내부 안내 문구는 렌더링하지 않는다.
+
+느낌표는 `.start-alert-mark`로 구현한다. `centering` 시작과 동시에
+`840ms cubic-bezier(0.18, 0.9, 0.24, 1.2)` 등장 애니메이션을 실행하고,
+도토리 본체는 첫 `22%` 동안 정지해 알림이 이동보다 먼저 인지되도록 한다.
+느낌표는 `centering` 종료 상태에서 사라지지 않고 `inspecting`으로
+이어진다. `inspecting`의 첫 `72%`까지 `translateY(-8px)` 위치를 유지하고,
+`72~82%`에서 한 번 작게 반동한 뒤 마지막 `18%` 동안 위로 `9px` 이동하면서
+`scale(0.55)`, `opacity: 0`으로 사라진다. 따라서 돋보기 확대가 시작되는
+`1920ms` 이전에 소멸이 완료된다.
+
+### 21.9.13 시작 도토리 동작 효과음
+
+시작 버튼을 누르면 도토리 애니메이션과 함께 두 번의 짧은
+`띠용 → 띠용` 효과음을 재생한다.
+
+```yaml
+asset: /sounds/start-dotori-boing.wav
+source_file: frontend/public/sounds/start-dotori-boing.wav
+generator: frontend/scripts/generate_start_motion_sound.mjs
+duration: 1.82s
+sample_rate: 44100Hz
+channels: mono
+encoding: PCM 16-bit WAV
+playback_trigger: 사용자가 활성화된 시작 버튼을 클릭하거나 Enter로 실행
+loop: false
+preload: auto
+```
+
+첫 소리는 `0.06s`에 시작해 `690Hz → 260Hz`로 내려가고, 두 번째 소리는
+`0.84s`에 시작해 `610Hz → 205Hz`로 내려간다. 각 음에는 기본음과 약한
+2배음, 감쇠 곡선을 합성해 가볍고 둥근 애니메이션 효과를 만든다.
+
+`StartPage`는 `<audio preload="auto">` 요소를 `useRef`로 관리한다. 시작
+버튼의 사용자 제스처 안에서 `currentTime = 0`으로 초기화한 뒤 `play()`를
+호출한다. 브라우저 정책으로 재생이 거부되어도 화면 진행을 막지 않고
+`[DOTORI_START_AUDIO] playback=blocked` 로그만 남긴다. 컴포넌트가
+언마운트되면 재생을 중지한다.
+
+`prefers-reduced-motion: reduce`에서는 도토리 애니메이션을 건너뛰므로
+효과음도 재생하지 않는다.
+
+협업자는 저장된 WAV 파일을 그대로 사용한다. 음원을 다시 생성해야 할 때만
+다음 명령을 실행한다.
+
+```bash
+cd frontend
+npm run generate:start-sound
+```
+
+생성 스크립트는 외부 패키지나 네트워크 없이 동일한 WAV 파일을
+`frontend/public/sounds/start-dotori-boing.wav`에 덮어쓴다. Git에는 WAV와
+생성 스크립트를 모두 포함한다.
+
+`prefers-reduced-motion: reduce`에서는 위 동작을 모두 생략하고 기존과 같이
+즉시 `/survey`로 이동한다.
+
 ## 21.10 `/survey` 정확한 구현
 
 ### 21.10.1 데이터 및 진행
 
 ```yaml
 loading_initial: true
-answer_array_initial_value: 0
-answer_value_range: 1..option_count
+answer_array_initial_value: -1
+answer_value_range: 0..3
+api_choice_index_range: 0..3
 current_question_index: zero_based
 display_question_number: one_based
 auto_advance: true
@@ -1692,6 +1959,20 @@ submit_on_last_answer: true
 result_storage_key: dotori-result
 result_route: /
 ```
+
+화면과 백엔드 `AnswerItem.choice_index`, 진단 계산기는 모두 0부터 시작하는
+배열 인덱스 `0..3`을 사용한다. 미응답 상태만 `-1`로 구분한다.
+
+```ts
+const value = optionIndex; // 0..3
+choice_index: finalAnswers[i]
+```
+
+UI를 `1..4`, API를 `0..3`으로 이중 관리하면 변환 누락 시 네 번째 선택지
+값 `4`가 전송되어 `Value error, choice_index는 0~3 사이의 값이어야
+합니다.`가 발생한다. 따라서 별도 `-1` 미응답 sentinel과 0 기반 선택값을
+사용하며 제출 전 모든 값이 정수 `0..3`인지 검사한다. 유효하지 않은 값이
+하나라도 있으면 API를 호출하지 않는다.
 
 진행률 공식:
 
@@ -1706,7 +1987,6 @@ loading: "질문을 불러오는 중이에요…"
 load_error: "질문을 불러오지 못했습니다. 백엔드 서버를 확인해 주세요."
 creating_result: "결과를 만드는 중이에요…"
 submit_error: "결과를 계산하지 못했습니다. 잠시 후 다시 시도해 주세요."
-question_guide: "가장 나와 가까운 답 하나를 골라주세요."
 auto_advance_default: "답을 고르면 다음 질문으로 바로 넘어가요."
 auto_advance_last: "답을 고르면 바로 결과를 보여드려요."
 previous: "← 이전 질문"
@@ -1733,12 +2013,28 @@ previous: "← 이전 질문"
 .question-card h1 {
   margin: 0;
   font-family: "Black Han Sans", "Noto Sans KR", sans-serif;
-  font-size: 34px;
-  line-height: 1.15;
+  font-size: 27px;
+  line-height: 1.25;
   font-weight: 400;
   letter-spacing: -0.045em;
+  word-break: keep-all;
+  overflow-wrap: normal;
 }
 ```
+
+질문 제목에만 위 줄바꿈 규칙을 적용하여 한글 단어 내부가 아닌 띄어쓰기
+위치에서 줄을 바꾼다. 답변 선택지의 줄바꿈 규칙은 변경하지 않는다.
+
+하늘은 `#9EDAF1`, 언덕은 `#8FC77A`를 유지한다. 하늘과 언덕을 별도
+사각형으로 나누지 않고 시작 화면 전체 캔버스에서 곡선 경계로 연결한다.
+헤더 주변과 좌우 화면 끝에는 하늘색이, 도토리 아래와 체크포인트 카드의
+바깥 여백에는 초록색이 보여야 한다.
+하늘에는 흰색 불투명도 `0.24–0.55`의 둥근 구름 군집 7개를 배치하며
+제목, 질문 스티커, 도토리와 겹치지 않게 한다. 언덕에는 `#5F9F5B`
+도트형 풀 군집 7개를 배치한다.
+
+질문 카드에는 `가장 나와 가까운 답 하나를 골라주세요.` 문구를 렌더링하지
+않는다.
 
 ### 21.10.4 답변 선택지
 
@@ -1853,7 +2149,85 @@ risk_color: GREEN
 | FVAS | 달콤한 디저트 도토리 | `/acorns/FVAS.png` |
 | FVAI | 마이웨이 욜로 도토리 | `/acorns/FVAI.png` |
 
-### 21.11.4 추천 영역
+### 21.11.4 결과 도토리 더블 점프 애니메이션
+
+결과 화면의 16개 캐릭터는 모두 `.result-character` 한 클래스를 사용한다.
+결과 화면 마운트 시 즉시 애니메이션을 시작하며, `5초` 주기 안에서 두 번
+점프하고 정확히 `2회` 주기만 실행한다. 따라서 총 실행 시간은 `10초`,
+실제 점프 횟수는 `4회`이다. 무한 반복은 금지한다.
+
+```css
+.result-character {
+  transform-origin: center bottom;
+  will-change: transform;
+  animation: result-double-jump 5s ease-in-out 2 both;
+}
+```
+
+한 주기의 키프레임과 `5초` 기준 절대 시간은 다음과 같다.
+
+| 비율 | 주기 내 시간 | Y 이동 | 회전 | 스케일 | 의미 |
+|---:|---:|---:|---:|---|---|
+| `0%` | `0ms` | `0` | `0` | `1` | 바닥 대기 |
+| `4%` | `200ms` | `2px` | `0` | `1.03, 0.97` | 첫 점프 준비 압축 |
+| `10%` | `500ms` | `-18px` | `-1.5deg` | `0.99, 1.01` | 첫 점프 최고점 |
+| `16%` | `800ms` | `0` | `0` | `1.04, 0.96` | 첫 착지 |
+| `20%` | `1000ms` | `1px` | `0` | `1.025, 0.975` | 두 번째 점프 준비 |
+| `26%` | `1300ms` | `-14px` | `1.2deg` | `0.995, 1.005` | 두 번째 점프 최고점 |
+| `32%` | `1600ms` | `0` | `0` | `1.03, 0.97` | 두 번째 착지 |
+| `34%` | `1700ms` | `-3px` | `-0.4deg` | `1` | 착지 반동 |
+| `36%` | `1800ms` | `0` | `0` | `1` | 안정 |
+| `100%` | `5000ms` | `0` | `0` | `1` | 다음 주기까지 정지 |
+
+전체 결과 화면 진입 시점 기준 점프 최고점은 `500ms`, `1300ms`,
+`5500ms`, `6300ms`이다. 두 번째 주기가 끝나는 `10000ms`에는 원래
+위치와 크기로 정지한다. `transform`만 사용하므로 주변 텍스트나 카드의
+레이아웃 위치를 변경하면 안 된다. `transform-origin: center bottom`으로
+발이 언덕에 닿은 느낌을 유지한다.
+
+결과 데이터는 `useEffect`에서 세션 값으로 교체될 수 있으므로 이미지에
+`key={code}`를 둔다. 실제 코드가 확정되어 PNG가 바뀌면 해당 이미지가
+다시 마운트되며 그 시점부터 온전한 `10초` 애니메이션을 시작한다.
+
+```tsx
+<img
+  key={code}
+  className="result-character"
+  data-character-code={code}
+  src={`/acorns/${code}.png`}
+  alt={typeName}
+/>
+```
+
+`PEAS`, `PEAI`, `PERS`, `PERI`, `PVRS`, `PVRI`, `PVAS`, `PVAI`,
+`FEAS`, `FEAI`, `FERS`, `FERI`, `FVRS`, `FVRI`, `FVAS`, `FVAI`
+모두 위 클래스와 키프레임을 공유해야 한다. 유형별 별도 애니메이션이나
+좌표 예외를 만들지 않는다.
+
+실행 로그 형식:
+
+```text
+[DOTORI_RESULT_ANIMATION] code=FVRI cycle=1 phase=start
+[DOTORI_RESULT_ANIMATION] code=FVRI cycle=2 phase=start
+[DOTORI_RESULT_ANIMATION] code=FVRI cycles=2 phase=complete elapsed_ms=10000
+```
+
+`animationstart`, 첫 `animationiteration`, `animationend` 이벤트에 각각
+로그를 남긴다. `prefers-reduced-motion: reduce`에서는 공통 모션 규칙에
+따라 지속시간을 `0.01ms`, 반복 횟수를 `1회`로 축소한다.
+
+교차 검증 조건:
+
+1. `TYPE_NAMES` 키가 정확히 16개이며 중복이 없어야 한다.
+2. 각 키에 대응하는 `/public/acorns/{code}.png`가 존재해야 한다.
+3. 16개 파일 모두 PNG이고 `1254×1254`, RGBA여야 한다.
+4. 결과 이미지 16종 모두 `result-character` 클래스와 `key={code}`를
+   사용해야 한다.
+5. CSS 선언은 `5s`, 반복 횟수 `2`, `infinite` 미사용이어야 한다.
+6. 두 주기가 끝난 뒤 최종 변환은 `translateY(0) rotate(0) scale(1)`이어야
+   한다.
+
+### 21.11.5 추천 영역
 
 고정 추천 데이터:
 
@@ -1881,17 +2255,88 @@ grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 gap: 10px;
 ```
 
-### 21.11.5 위험 신호
+### 21.11.6 위험 신호
 
 정확한 매핑:
 
 | API 값 | 단계명 | 카드 클래스 | 배경 | 현재 표시 |
 |---|---|---|---|---|
-| `GREEN` | 안정 신호 | `risk-green` | `#D7EBC6` | `🟢` |
-| `YELLOW` | 주의 신호 | `risk-yellow` | `#FFF0B8` | `🟡` |
-| `RED` | 위험 신호 | `risk-red` | `#F6C5B8` | `🔴` |
+| `GREEN` | 안정 신호 | `risk-green` | `#D7EBC6` | 신호등 일러스트 |
+| `YELLOW` | 주의 신호 | `risk-yellow` | `#FFF0B8` | 신호등 일러스트 |
+| `RED` | 위험 신호 | `risk-red` | `#F6C5B8` | 신호등 일러스트 |
 
-주의: 시작 화면에서는 이모지 나열을 금지하지만, 결과 카드의 단계 아이콘은 현재 구현 보존을 위해 위 표대로 유지한다. 결과 카드도 신호등 이미지로 변경하려면 별도 디자인 변경으로 취급한다.
+결과 카드에서는 원형 색상 이모지를 사용하지 않는다. 모든 단계에
+`/illustrations/traffic-light.png`를 표시하고 `안정 신호`, `주의 신호`,
+`위험 신호` 텍스트를 함께 제공한다.
+
+결과 유형 제목 `.hero-type-name`은 짙은 외곽선을 유지하되 `text-shadow`를
+적용하지 않는다.
+
+유형명 끝의 `도토리`는 단어 중간에서 줄바꿈하면 안 된다. 유형명 본문과
+`도토리`를 각각 블록 요소로 렌더링해 다음 형태를 보장한다.
+
+```text
+풍선 탄 낭만
+도토리
+```
+
+```tsx
+<h1 className="hero-type-name">
+  <span>{typeNameWithoutSuffix}</span>
+  <span className="hero-type-suffix">도토리</span>
+</h1>
+```
+
+`.hero-type-name`은 `word-break: keep-all`을 사용하고
+`.hero-type-suffix`는 `white-space: nowrap`을 사용한다.
+
+DNA 리포트 `.summary-card`의 배경은 `#D7FAF7`을 유지한다. 정부지원과
+은행권 추천 영역에는 사각형 카드 배경과 카드 테두리를 사용하지 않는다.
+API의 `summary` 값에 포함될 수 있는 `[여유로운 감성파] 풍선 탄 낭만
+도토리 — 고위험 등급` 같은 조합 문구는 DNA 리포트에 렌더링하지 않는다.
+해시태그 칩은 `13px/900`, 상하 `7px`·좌우 `15px` 여백과 `9px` 간격을
+사용하고 행 전체를 중앙 정렬한다.
+
+추천 항목 DOM은 다음 순서를 따른다.
+
+```tsx
+<div className="rec-item">
+  <span className="rec-category">정부지원</span>
+  <div className="rec-panel">
+    <p className="rec-desc">
+      <strong>청년 자산형성 지원</strong>
+      부가 설명
+    </p>
+  </div>
+</div>
+```
+
+`.rec-category`는 최소 너비 `112px`, 배경 `#9EDAF1`, 완전한 캡슐형
+모서리(`border-radius: 999px`)를 사용하여 정부지원과 은행권 문구가
+자연스러운 긴 타원 안에 들어가게 한다. `RISK SIGNAL` 라벨과 동일한
+`3px 3px 0 var(--ink)` 오프셋 음영을 적용한다.
+
+`.rec-panel`은 `12px` 둥근 모서리를 가진 사각형으로 만든다. 배경은
+베이지 `#F2DFC0`, 윤곽은 `2px` 잉크색 선을 사용하며 추천 제목과 설명만
+포함한다. 추천 제목은 설명 문단 안의 `<strong>` 요소로 표시한다.
+추천 제목과 설명 모두 `word-break: keep-all`, `overflow-wrap: normal`을
+사용하여 한글 음절 중간이 아니라 띄어쓰기 위치에서만 줄을 바꾼다.
+두 `.rec-item`은 같은 그리드 행 높이를 모두 사용하고 `.rec-panel`에
+`flex: 1 1 auto`를 적용하여 내용 길이가 달라도 양쪽 사각형의 너비와
+높이가 동일해야 한다.
+
+위험 카드의 `RISK SIGNAL` 라벨과 `안정 신호`·`주의 신호`·`위험 신호`는
+같은 상단 행에 나란히 배치한다. 신호등 일러스트는 단계명 앞에 둔다.
+추가 설명 영역은 사각형 카드의 가로 중앙에 정렬하며 제목은 `14px/900`,
+행동 안내는 `12px/800`, 행간 `1.6`을 사용한다.
+
+결과 부주제 `.risk-concern`은 현재 위험 단계의 신호등 색을 사용한다.
+
+```css
+.risk-green .risk-concern  { color: #62A86D; }
+.risk-yellow .risk-concern { color: #EFBD3E; }
+.risk-red .risk-concern    { color: #DF6A55; }
+```
 
 ## 21.12 에셋 무결성 명세
 
@@ -1905,14 +2350,14 @@ gap: 10px;
 | `acorns/FERS.png` | 1011628 | `5cc737ad226a73209a34445ac96bd7f76ff953ccc08ee0a20f75f3f40caaefdf` |
 | `acorns/FVAI.png` | 1117186 | `9e15f33d4f02b12213e79ccba16fe5c4506532acd814eac425c6abeb2520d855` |
 | `acorns/FVAS.png` | 1094413 | `485b6253299ed66507b9bb3cf2a7daf7a759c565ede0c83e728b38341cde0887` |
-| `acorns/FVRI.png` | 817900 | `0f8427ef9c11443ebe4e9defc3b8b75e7f93b678598a3eb71e50db3811314716` |
+| `acorns/FVRI.png` | 813757 | `ddaf9c47f688b7ca9efd6bfe230d83ac9e16db94c07b23a75512b408e8e236b6` |
 | `acorns/FVRS.png` | 1154993 | `0a9bcd61fc191a73619eb10f1e1f971463af4ea2da6f48c8c61b56afac9cde95` |
 | `acorns/PEAI.png` | 990040 | `7b3f3faca10b0ba1cc68cbe8f82404b2e96344ee7a2c1d93c6c3485240fc0b6d` |
 | `acorns/PEAS.png` | 1223399 | `b5c63b58699fc80ac3129de52540ee6c5d83b4d5f57ad6b6cf858c433767aba9` |
 | `acorns/PERI.png` | 1221351 | `9f0d52bce84aa1641a6c5dd70ee4a03b5401d511ca4e568254fa4deab2d78858` |
 | `acorns/PERS.png` | 1041245 | `ecf58d8d2e6d3b84fe4039dc982826975bfa9e479d359add6c6523b1c7c826da` |
 | `acorns/PVAI.png` | 1261820 | `da8669ef44ea115709da949cc873479e2b24b2260e380d8bdb541f177dfe88d7` |
-| `acorns/PVAS.png` | 1544585 | `0e37eb4451d9f1229e2b2c75a3f22298822ca8315bc11f1c0a461a652c01b2ad` |
+| `acorns/PVAS.png` | 1541005 | `595e7a7f582bf0bba4a7253b37dea24352a65c0249e42fdfdd817f6068f4a684` |
 | `acorns/PVRI.png` | 1144849 | `9b89916b72814328d8f06b50b2047f512c34af1107fd39367edf7c1715eea523` |
 | `acorns/PVRS.png` | 1136657 | `db8e290ee4d80eb8db4582c1b5d2526f81baa148af5eaa71c91cba154b777b98` |
 | `illustrations/traffic-light.png` | 917561 | `c1f8d639c11253096f3b839ce438dbe959631d7709c81444cca8f25cedd5ad23` |
@@ -2048,7 +2493,7 @@ And 단계명은 "주의 신호"여야 한다
 
 - [ ] `/start`, `/survey`, `/`가 모두 렌더링된다.
 - [ ] 기준 뷰포트에서 가로 스크롤이 없다.
-- [ ] 시작 히어로가 `398px`이다.
+- [ ] 시작 히어로가 `480px`이다.
 - [ ] 질문 카드가 `258px`이다.
 - [ ] 결과 히어로가 `374px`이다.
 - [ ] 신호등이 이모지가 아닌 PNG 일러스트다.
@@ -2091,3 +2536,63 @@ frontend/public의 PNG를 그대로 사용하고 대체 이미지나 이모지�
 21.15의 기능 인수 테스트와 21.16의 완료 체크리스트를 모두 통과시키세요.
 문서와 구현이 충돌하면 21장, 실제 에셋, 화면별 명세 순으로 우선합니다.
 ```
+
+---
+
+## 22. 투명 배경(누끼) 이미지 계약
+
+이 절은 이 프로젝트에서 이후 생성하거나 편집하는 모든 래스터 이미지에
+적용한다. 이 절의 투명 배경과 검증 규칙은 21.12의 기존 파일 바이트 및
+SHA-256 명세보다 우선한다.
+
+### 22.1 생성 및 편집 원칙
+
+- GPT로 생성한 캐릭터·사물 일러스트는 배경이 없는 RGBA PNG여야 한다.
+- 캐릭터와 소품의 기존 진한 외곽선, 내부 색, 표정, 비율은 그대로 보존한다.
+- 흰 캔버스, 회색 체크무늬, 흰 외곽 프린지, 흰 후광을 최종 파일에 남기면 안 된다.
+- 모든 흰색을 일괄 삭제하면 안 된다. 외곽선 안쪽의 눈동자 하이라이트,
+  치아, 휴대폰 화면, 지도, 크림, 담요 등 의도된 흰색은 보존한다.
+- 풍선 사이, 풍선 줄 사이, 체인 고리 사이, 팔과 소품 사이처럼 외부
+  배경과 이어지는 내부 틈도 투명해야 한다.
+- 신호등은 몸체와 램프만 남기고 바깥 체크무늬와 흰 테두리를 모두
+  제거한다. 램프 내부의 의도된 흰 하이라이트는 보존한다.
+
+### 22.2 적용 범위
+
+- `frontend/public/acorns/*.png`의 16개 유형 전체
+- `frontend/public/illustrations/traffic-light.png`
+- 이후 이 프로젝트에 추가되는 GPT 생성 래스터 캐릭터와 소품
+
+일부 유형만 처리한 상태로 병합하면 안 된다. 16개 유형은 항상 동일한 누끼
+규칙과 검증 기준을 적용한다.
+
+### 22.3 `ex.po` 별도 보관
+
+```text
+frontend/public/ex.po/
+├─ originals/
+│  ├─ acorns/
+│  └─ illustrations/
+└─ cutouts/
+   ├─ acorns/
+   └─ illustrations/
+```
+
+- `originals`에는 배경 제거 전 원본을 보존한다.
+- `cutouts`에는 앱에서 사용하는 누끼 결과와 동일한 파일을 보존한다.
+- 앱의 기존 URL 계약(`/acorns/{TYPE_CODE}.png`,
+  `/illustrations/traffic-light.png`)은 변경하지 않는다.
+- 같은 파일명으로 재처리할 때 `originals`를 덮어쓰면 안 된다.
+
+### 22.4 교차 검증
+
+1. 밝은 하늘색과 진한 초록색 배경에 각각 합성해 흰 프린지를 확인한다.
+2. 네 모서리 알파값이 모두 `0`인지 확인한다.
+3. 풍선·줄·체인·팔·소품 사이의 외부 연결 공간을 확대 확인한다.
+4. 의도된 내부 흰색이 보존되었는지 원본과 비교한다.
+5. 16개 캐릭터와 신호등의 파일 수, 크기, RGBA 채널을 확인한다.
+6. 앱 사용본과 `ex.po/cutouts` 보관본이 동일한지 확인한다.
+
+상세 판정과 자산별 SHA-256은 `docs/nukki-analysis.md`를 구현 검증 기록으로
+사용한다. 재현 가능한 처리는
+`frontend/scripts/extract_transparent_assets.py`로 수행한다.

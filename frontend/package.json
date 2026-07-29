@@ -1,23 +1,24 @@
 {
-  "name": "dotori-frontend",
-  "private": true,
+  "name": "dotori-react-spa",
   "version": "1.0.0",
+  "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite --port 3001",
     "build": "tsc && vite build",
-    "preview": "vite preview --port 3001"
+    "preview": "vite preview --port 3001",
+    "generate:start-sound": "node scripts/generate_start_motion_sound.mjs"
   },
   "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "lucide-react": "^0.344.0"
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
   },
   "devDependencies": {
-    "@types/react": "^18.3.3",
-    "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react": "^4.3.1",
-    "typescript": "^5.4.5",
-    "vite": "^5.2.11"
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5",
+    "vite": "^6.1.0"
   }
 }
