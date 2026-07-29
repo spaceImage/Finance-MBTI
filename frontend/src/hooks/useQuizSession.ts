@@ -3,6 +3,8 @@ import { fetchQuestions, submitDiagnosis, QuestionItem, AnswerItem, SubmitDiagno
 
 export function useQuizSession() {
   const [sessionUuid, setSessionUuid] = useState<string>('');
+  const [nickname, setNickname] = useState<string>('');
+  const [started, setStarted] = useState<boolean>(false);
   const [questions, setQuestions] = useState<QuestionItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [answers, setAnswers] = useState<AnswerItem[]>([]);
@@ -10,6 +12,11 @@ export function useQuizSession() {
   const [loading, setLoading] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  const startQuiz = (name: string) => {
+    setNickname(name);
+    setStarted(true);
+  };
 
   useEffect(() => {
     // Generate UUID or load from sessionStorage
@@ -70,10 +77,15 @@ export function useQuizSession() {
     setCurrentIndex(0);
     setAnswers([]);
     setResult(null);
+    setNickname('');
+    setStarted(false);
   };
 
   return {
     sessionUuid,
+    nickname,
+    started,
+    startQuiz,
     questions,
     currentIndex,
     currentQuestion: questions[currentIndex],

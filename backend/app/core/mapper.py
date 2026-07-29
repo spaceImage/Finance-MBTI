@@ -1,3 +1,6 @@
+from app.core.youth_product_matcher import enrich_with_live_rate
+
+
 def get_recommendations(mbti_code: str, calc_res: dict) -> list[dict]:
     """
     Returns actual financial product and government policy recommendation cards matching youth MBTI type.
@@ -5,16 +8,25 @@ def get_recommendations(mbti_code: str, calc_res: dict) -> list[dict]:
     financial_prod = calc_res.get("financial_product", "")
     policy = calc_res.get("government_policy", "")
     risk_color = calc_res.get("risk_color", "🟢")
-    
+
+    # 은행 예·적금 상품(토스뱅크/케이뱅크/카카오뱅크/전북은행/OK저축은행)이면
+    # 금감원 API에서 실시간 금리를 찾아본다. ETF·로보어드바이저 등은 매칭 대상이 아니라 None 반환.
+    live = enrich_with_live_rate(financial_prod)
+
+    product_items = ["우대 금리 / 수시입출금 혜택", "자동이체 연동 저축 서비스", "안전 자산 관리"]
+    if live:
+        product_items = [f"실시간 최고 우대금리: 연 {live['interest_rate']}%"] + product_items
+
     return [
         {
             "id": 1,
             "category": "실제 금융상품",
             "name": financial_prod.split(" — ")[0] if " — " in financial_prod else financial_prod,
             "description": financial_prod.split(" — ")[1] if " — " in financial_prod else "맞춤형 우대 금리 및 안전 자산 운용",
-            "tag": "맞춤 금융",
+            "tag": "실시간 금리" if live else "맞춤 금융",
             "risk_level": risk_color,
-            "items": ["우대 금리 / 수시입출금 혜택", "자동이체 연동 저축 서비스", "안전 자산 관리"]
+            "items": product_items,
+            "is_live": bool(live)
         },
         {
             "id": 2,

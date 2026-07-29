@@ -8,6 +8,8 @@ from app.db.models import DiagnosisSession, DiagnosisResponse, DiagnosisResult
 from app.schemas.diagnosis import SubmitDiagnosisRequest, SubmitDiagnosisResponse, QuestionItem
 from app.core.dual_engine import calculate_diagnosis, QUESTIONS
 from app.core.mapper import get_recommendations
+from app.core.finlife_client import fetch_youth_filtered_products
+from app.core.youthcenter_client import fetch_finance_youth_policies
 
 logger = logging.getLogger("dotori")
 router = APIRouter(prefix="/api/diagnosis", tags=["diagnosis"])
@@ -25,6 +27,25 @@ def get_questions():
             "options": [{"text": opt["text"]} for opt in q["options"]]
         })
     return formatted
+
+@router.get("/youth-products")
+def get_youth_products():
+    """
+    금감원 금융상품통합비교공시 API에서 은행권+저축은행권 예·적금 전체를 받아
+    청년 키워드 필터를 적용한 결과를 반환한다.
+    (API 키 미설정 시 빈 리스트 반환 — 에러 아님)
+    """
+    return fetch_youth_filtered_products()
+
+
+@router.get("/youth-policies")
+def get_youth_policies():
+    """
+    온통청년 API에서 '청년 금융' 키워드로 좁힌 정책 목록을 반환한다.
+    (API 키 미설정 시 빈 리스트 반환 — 에러 아님)
+    """
+    return {"policies": fetch_finance_youth_policies()}
+
 
 @router.post("/submit", response_model=SubmitDiagnosisResponse)
 def submit_diagnosis(payload: SubmitDiagnosisRequest, db: Session = Depends(get_db)):

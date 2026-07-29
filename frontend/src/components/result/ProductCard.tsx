@@ -18,7 +18,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ products }) => {
               <span className="product-category">{prod.category}</span>
               <span className="product-tag">{prod.tag}</span>
             </div>
-            <h4 className="product-name">{prod.name}</h4>
+            <h4 className="product-name">
+              {prod.name}
+              {prod.is_live && <span className="live-badge">🟢 실시간</span>}
+            </h4>
             <p className="product-desc">{prod.description}</p>
             {prod.items && prod.items.length > 0 && (
               <div className="product-items">

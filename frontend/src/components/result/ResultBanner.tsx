@@ -3,9 +3,10 @@ import { SubmitDiagnosisResponse } from '../../services/api';
 
 interface ResultBannerProps {
   result: SubmitDiagnosisResponse;
+  nickname?: string;
 }
 
-export const ResultBanner: React.FC<ResultBannerProps> = ({ result }) => {
+export const ResultBanner: React.FC<ResultBannerProps> = ({ result, nickname }) => {
   const summaryText = result.feature || result.summary || '금융 진단 결과입니다.';
 
   return (
@@ -18,6 +19,8 @@ export const ResultBanner: React.FC<ResultBannerProps> = ({ result }) => {
       <div className="mascot-avatar">
         <span className="mascot-icon">🌰</span>
       </div>
+
+      {nickname && <p className="nickname-tag">{nickname}님의 금융 MBTI는</p>}
 
       <h1 className="character-name">
         {result.character_name}

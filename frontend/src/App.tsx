@@ -1,11 +1,15 @@
 import React from 'react';
 import { useQuizSession } from './hooks/useQuizSession';
+import { NicknamePage } from './pages/NicknamePage';
 import { QuizPage } from './pages/QuizPage';
 import { ResultPage } from './pages/ResultPage';
 import './App.css';
 
 export function App() {
   const {
+    nickname,
+    started,
+    startQuiz,
     currentQuestion,
     currentIndex,
     totalQuestions,
@@ -18,6 +22,10 @@ export function App() {
     prevQuestion,
     restartQuiz,
   } = useQuizSession();
+
+  if (!started) {
+    return <NicknamePage onStart={startQuiz} />;
+  }
 
   if (loading) {
     return (
@@ -53,7 +61,7 @@ export function App() {
   }
 
   if (result) {
-    return <ResultPage result={result} onRestart={restartQuiz} />;
+    return <ResultPage result={result} nickname={nickname} onRestart={restartQuiz} />;
   }
 
   const currentAnswerObj = answers.find((a) => a.question_id === currentQuestion?.id);

@@ -5,10 +5,11 @@ import { SubmitDiagnosisResponse } from '../services/api';
 
 interface ResultPageProps {
   result: SubmitDiagnosisResponse;
+  nickname?: string;
   onRestart: () => void;
 }
 
-export const ResultPage: React.FC<ResultPageProps> = ({ result, onRestart }) => {
+export const ResultPage: React.FC<ResultPageProps> = ({ result, nickname, onRestart }) => {
   return (
     <div className="page-container result-page-container">
       <div className="header-logo">
@@ -17,7 +18,7 @@ export const ResultPage: React.FC<ResultPageProps> = ({ result, onRestart }) => 
         <span className="logo-sub">진단 리포트</span>
       </div>
 
-      <ResultBanner result={result} />
+      <ResultBanner result={result} nickname={nickname} />
 
       <ProductCard products={result.recommended_products} />
 

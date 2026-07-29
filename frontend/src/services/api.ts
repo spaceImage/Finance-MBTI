@@ -25,6 +25,7 @@ export interface ProductRecommendation {
   risk_level: string;
   tag: string;
   items?: string[];
+  is_live?: boolean;
 }
 
 export interface SubmitDiagnosisResponse {
@@ -67,7 +68,15 @@ export async function submitDiagnosis(sessionUuid: string, answers: AnswerItem[]
   });
 
   if (!res.ok) {
-    throw new Error('진단 제출에 실패했습니다.');
+    try {
+      const errBody = await res.json();
+      const detail = Array.isArray(errBody.detail)
+        ? errBody.detail.map((d: any) => d.msg).join(', ')
+        : errBody.detail;
+      throw new Error(detail || '진단 제출에 실패했습니다.');
+    } catch {
+      throw new Error('진단 제출에 실패했습니다.');
+    }
   }
 
   return res.json();
