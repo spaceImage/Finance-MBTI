@@ -168,35 +168,40 @@ root_font:
 | 항목 | 기준 |
 |---|---:|
 | 모바일 캔버스 너비 | `390px` |
-| 최소 화면 높이 | `844px` |
+| 공통 캔버스 최소 높이 | `1000px` |
 | 좌우 기본 패딩 | `16px` |
 | 상단 패딩 | `18px` |
 | 하단 패딩 | `24px` |
 | 콘텐츠 기준 너비 | `358px` |
 
-현재 `.mobile-screen`, `.result-screen`은 고정 너비 `390px`을 사용한다. 화면 폭이 `389px` 이하일 때는 `100vw`로 축소한다.
+현재 `#root`는 `width: 100%`인 세로 Flex 셸이며, `.mobile-screen`,
+`.result-screen`은 `width: 100%`와 `max-width: 390px`을 함께 사용한다. 작은 화면에서는 부모 너비로
+축소되고 PC에서는 `390px`을 넘지 않는다.
 
 ```css
 .mobile-screen,
 .result-screen {
-  width: 390px;
-  min-height: 844px;
+  width: 100%;
+  max-width: 390px;
+  min-height: 1000px;
   padding: 18px 16px 24px;
 }
-
-@media (max-width: 389px) {
-  .mobile-screen,
-  .result-screen {
-    width: 100vw;
-  }
-}
 ```
+
+화면 너비는 브레이크포인트로 전환하지 않고 항상 `width: 100%`와
+`max-width: 390px`을 함께 사용한다. 폭이 명확한 `#root`를 기준으로 계산하여
+PC에서 캔버스가 축소되는 것을 방지한다. 작은 화면에서는 부모의 실제 콘텐츠
+너비로 축소되고, 넓은 화면에서는 `390px`에서 멈춘다. `100vw`는 세로
+스크롤바가 있는 PC 브라우저에서 스크롤바 너비까지 포함해 약 `15px`의
+가로 오버플로를 만들 수 있으므로 사용하지 않는다.
 
 ### 4.2 정렬 원칙
 
 - 데스크톱에서도 모바일 캔버스 비율을 유지한다.
-- 현재 구현은 캔버스를 화면 왼쪽 위에 배치한다.
-- 서비스 배포 시 데스크톱 중앙 정렬이 필요하다면 전체 페이지 셸에서만 처리하고, 모바일 캔버스 내부 치수는 유지한다.
+- 현재 구현은 캔버스를 화면 상단·수평 중앙에 배치한다.
+- 데스크톱 중앙 정렬은 전체 페이지 셸을 세로 Flex 컨테이너로 구성하고
+  `align-items: center`로 처리한다. Grid의 퍼센트 폭과 `max-width` 조합에서
+  발생할 수 있는 캔버스 폭 축소를 피하며, 모바일 캔버스 내부 치수는 유지한다.
 - 카드 내부 텍스트는 기본적으로 왼쪽 정렬한다.
 - 상태 숫자나 글자 수처럼 짧은 보조 정보만 오른쪽 정렬한다.
 
@@ -261,7 +266,9 @@ root_font:
 
 ### 5.4 페이지 외부 배경
 
-모바일 캔버스 바깥 영역은 `#DBE8DF`를 사용한다. 이 색은 앱 캔버스와 분리되면서도 전체 자연 계열 팔레트에 포함된다.
+PC에서 모바일 캔버스 바깥에 생기는 좌우 영역은 흰색이나 회녹색을 사용하지
+않고 앱의 크림색 `#FFF7DF`로 채운다. 모바일 캔버스는 가로 중앙에 배치하며
+세로는 상단 정렬을 유지한다.
 
 ---
 
@@ -389,13 +396,19 @@ border-radius: 18px 12px 20px 14px;
 
 구성:
 
-- 왼쪽: 심볼과 `DOTORI DNA`
+- 왼쪽: 투명 배경의 원형 도토리 심볼과 `돌아가기` 링크
+- 중앙: `DOTORI DNA` 브랜드명
 - 오른쪽: 진행 또는 결과 메타 정보
 
 규칙:
 
 - 높이 `38px`
 - 텍스트 크기 `10px`
+- 중앙 브랜드명은 `left: 50%`와 `translateX(-50%)`로 좌우 항목의 너비와
+  관계없이 모바일 캔버스의 정확한 중앙에 고정한다.
+- `380px` 이하에서는 중앙 브랜드와 오른쪽 진행 정보가 겹치지 않도록
+  진행 정보는 `8px`과 자간 `0.04em`, 중앙 브랜드는 `9px`과 자간
+  `0.08em`으로 축소한다.
 - 굵기 `900`
 - 영문 자간 `0.12em`
 - 브랜드 링크는 시작 화면으로 이동
@@ -494,9 +507,8 @@ border-radius: 18px 12px 20px 14px;
 
 - 2열 그리드
 - 별도의 추천 카드 배경과 테두리는 사용하지 않음
-- `정부지원`, `은행권` 카테고리는 `#9EDAF1` 배경의 긴 타원형 라벨
 - 추천 제목과 부가 설명만 베이지 `#F2DFC0` 사각형 영역 안에 배치
-- 긴 타원형 라벨은 사각형 영역 바깥 위쪽에 배치
+- 별도의 `정부지원`, `은행권` 카테고리 문구나 상단 라벨은 표시하지 않음
 - 작은 화면에서도 각 항목의 최소 너비가 깨지지 않게 `minmax(0, 1fr)` 사용
 
 ### 8.10 답변 선택지
@@ -756,9 +768,9 @@ Constraints: no text, no labels, no watermark, no cast shadow, no reflection.
 - 배경 `#D7FAF7`
 - 상단 노란 `DNA REPORT` 테이프
 - `[성향] 캐릭터명 — 위험등급` 형식의 요약 문구는 표시하지 않음
-- 정부지원 및 은행권 추천을 2열로 배치
+- 정부지원 및 은행권 추천 내용은 카테고리명 없이 2열로 배치
 - 베이지 `#F2DFC0` 사각형 설명 영역을 표시
-- 카테고리는 파란 긴 타원, 제목과 부가 설명은 사각형 영역 안에 표시
+- 제목과 부가 설명만 사각형 영역 안에 표시
 - 핵심 키워드는 중앙 정렬된 큰 캡슐형 칩으로 표시
 
 ### 위험 신호 카드
@@ -864,7 +876,7 @@ RED    → risk-red
 ### 현재 규칙
 
 - `390px` 이상: 390px 모바일 캔버스를 유지
-- `389px` 이하: 화면 폭을 `100vw`로 변경
+- 모든 화면: `#root { width: 100% }`, 캔버스 `width: 100%; max-width: 390px` 적용
 
 ### 추가 권장 규칙
 
@@ -877,7 +889,7 @@ RED    → risk-red
 #### 데스크톱
 
 - 모바일 캔버스를 페이지 중앙에 배치
-- 외부 배경은 `#DBE8DF` 유지
+- 외부 배경은 앱과 동일한 크림색 `#FFF7DF` 유지
 - 앱 너비를 무리하게 늘리지 않는다.
 
 #### 안전 영역
@@ -1228,14 +1240,16 @@ html,
 body {
   margin: 0;
   min-height: 100%;
-  background: #dbe8df;
+  background: #fff7df;
   color: #173f32;
   font-family: "Noto Sans KR", sans-serif;
 }
 
 body {
   display: grid;
-  place-items: start start;
+  grid-template-columns: minmax(0, 1fr);
+  place-items: start center;
+  min-width: 100%;
 }
 
 button,
@@ -1263,6 +1277,7 @@ a {
   --brown: #7c4829;
   --tan: #d9a86c;
   --outline: 3px solid var(--ink);
+  --screen-min-height: 1000px;
 }
 ```
 
@@ -1308,8 +1323,9 @@ Noto_Sans_KR:
 ```css
 .mobile-screen,
 .result-screen {
-  width: 390px;
-  min-height: 844px;
+  width: 100%;
+  max-width: 390px;
+  min-height: var(--screen-min-height);
   padding-top: 18px;
   padding-right: 16px;
   padding-bottom: 24px;
@@ -1330,12 +1346,6 @@ content_width: 358px
 반응형:
 
 ```css
-@media (max-width: 389px) {
-  .mobile-screen,
-  .result-screen {
-    width: 100vw;
-  }
-}
 ```
 
 390px 이상의 뷰포트에서 콘텐츠 자체를 비례 확대하면 안 된다.
@@ -1450,19 +1460,22 @@ main.mobile-screen.start-screen
 │  └─ div.start-hill
 ├─ section.start-note
 │  ├─ span "CHECK POINT"
-│  ├─ h2
 │  ├─ div.signal-guide
 │  │  ├─ img.signal-illustration
 │  │  └─ div
 │  │     ├─ strong
 │  │     └─ p.checkpoint-copy
 │  └─ div.nickname-field
-│     ├─ label
-│     ├─ input
+│     ├─ input[aria-label="닉네임"]
 │     └─ small
 ├─ button.start-cta
 │  ├─ text
-│  └─ span
+│  └─ span.cta-sub
+├─ div.start-bottom-detail[aria-hidden="true"]
+│  └─ span × 14
+├─ div.start-bottom-flowers[aria-hidden="true"]
+│  └─ span × 5
+├─ img.start-squirrel[aria-hidden="true"]
 └─ span.animation-status[aria-live="polite"]
 ```
 
@@ -1475,11 +1488,8 @@ title_line_1: "도토리"
 title_line_2: "금융 DNA"
 test_label: "TEST"
 checkpoint_label: "CHECK POINT"
-checkpoint_heading_line_1: "나의 금융 위험 신호를"
-checkpoint_heading_line_2: "신호등으로 한눈에 확인해요"
 signal_title: "안정 · 주의 · 위험"
 signal_copy: "단계에 맞춰 필요한 도움을 안내해 드려요."
-nickname_label: "결과에서 사용할 닉네임을 알려주세요"
 nickname_placeholder: "닉네임을 입력해 주세요"
 cta_main: "내 도토리 찾기"
 cta_sub: "시작하기 ↗"
@@ -1503,6 +1513,12 @@ cta_sub: "시작하기 ↗"
   overflow: visible;
 }
 ```
+
+`1000px`은 결과 화면의 실측 높이 약 `999px`을 올림한 공통 캔버스
+기준값이다. `/start`, `/survey`, `/`는 모두 이 최소 높이를 사용한다.
+콘텐츠가 `1000px`을 초과하면 고정 높이로 자르지 않고 화면이 아래로
+자연스럽게 늘어난다. 기준 뷰포트 `390×844px`은 반응형 검증 환경으로
+유지하며, 캔버스의 세로 스크롤을 허용한다.
 
 잔디 언덕:
 
@@ -1617,21 +1633,14 @@ alt: 돋보기로 금융 생활을 살펴보는 탐구 도토리
 
 ```css
 .start-note {
-  min-height: 286px;
+  min-height: 0;
   margin: 19px 4px 0 0;
-  padding: 24px 18px 18px;
+  padding: 20px 18px 16px;
   background: #fffdf4;
   border: 3px solid #173f32;
   border-radius: 12px 18px 12px 16px;
   box-shadow: 7px 8px 0 #6ea56a;
   position: relative;
-}
-
-.start-note h2 {
-  margin: 0 0 8px;
-  font-size: 20px;
-  line-height: 1.4;
-  letter-spacing: -0.04em;
 }
 ```
 
@@ -1683,7 +1692,7 @@ alt: 돋보기로 금융 생활을 살펴보는 탐구 도토리
 .signal-guide strong {
   display: block;
   margin-bottom: 3px;
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 900;
   letter-spacing: -0.02em;
   color: #173f32;
@@ -1691,7 +1700,7 @@ alt: 돋보기로 금융 생활을 살펴보는 탐구 도토리
 
 .checkpoint-copy {
   margin: 0;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.45;
   font-weight: 700;
   color: #547365;
@@ -1703,15 +1712,8 @@ alt: 돋보기로 금융 생활을 살펴보는 탐구 도토리
 ```css
 .nickname-field {
   position: relative;
-  padding-top: 14px;
+  padding-top: 10px;
   border-top: 2px dashed #b7c6b7;
-}
-
-.nickname-field label {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 11px;
-  font-weight: 900;
 }
 
 .nickname-field input {
@@ -1774,6 +1776,105 @@ alt: 돋보기로 금융 생활을 살펴보는 탐구 도토리
   box-shadow: 3px 4px 0 #173f32;
 }
 ```
+
+### 21.9.10.1 시작 화면 하단 풀 디테일
+
+결과 화면 기준 `1000px` 공통 캔버스 적용 후 시작 화면 하단에 생기는
+여백에는 `.start-bottom-detail`을 배치한다. CTA와 겹치지 않도록 화면
+하단에서 `7px`, 좌우에서 `14px` 떨어진 영역 안에 풀 군집 14개를 둔다.
+
+```yaml
+container_height: 62px
+cluster_count: 14
+base_color: "#5F9F5B"
+opacity_range: 0.50..0.72
+cluster_height_range: 13px..52px
+pointer_events: none
+aria_hidden: true
+```
+
+각 군집은 중앙 줄기와 `::before`, `::after`의 좌우 잎으로 구성한다.
+크기·회전·불투명도를 서로 다르게 설정해 규칙적인 반복을 피한다. 장식은
+버튼보다 아래에 머물러야 하며, 입력·CTA의 클릭 영역이나 텍스트 대비에
+영향을 주면 안 된다.
+
+풀숲 사이에는 `.start-bottom-flowers`로 작은 꽃 5개를 배치한다. 각 꽃은
+3px 초록 줄기, 잎 한 장, 노란 꽃잎 5장과 갈색 중심으로 구성하며 CSS
+`radial-gradient`로 그린다. 짝수 꽃은 채도와 밝기를 낮춰 크림빛 변주를
+준다.
+
+```yaml
+flower_count: 5
+container_height: 48px
+stem_color: "#397C55"
+leaf_color: "#5F9F5B"
+petal_color: "#F6C84A"
+center_color: "#7C4829"
+render_order:
+  grass: 1
+  flowers: 2
+  squirrel: 3
+```
+
+풀과 꽃은 화면 전체에 균일하게 반복하지 않고 좌우 높이와 회전을 다르게
+한다. 오른쪽 꽃 일부가 다람쥐와 겹치는 경우에도 다람쥐의 `z-index: 3`이
+가장 높아 얼굴, 몸통, 꼬리 윤곽이 가려지지 않아야 한다.
+
+### 21.9.10.2 하단 다람쥐 장식과 탐색 동작
+
+하단 풀숲 오른쪽에는 `start-squirrel`이라는 명칭의 작은 다람쥐 장식을
+배치한다. 이 다람쥐는 도토리를 찾는 세계관을 보조하지만 CTA나 입력의 의미를
+대체하지 않는 순수 장식 요소다.
+
+```yaml
+asset_name: start-squirrel
+source: /illustrations/start-squirrel.png
+file: frontend/public/illustrations/start-squirrel.png
+format: RGBA PNG
+pixel_size: 448x512
+render_size: 82x82px
+position:
+  right: 31px
+  bottom: 10px
+stacking_order: 3
+alt: ""
+aria_hidden: true
+pointer_events: none
+```
+
+에셋의 직접적인 스타일 기준은 `/acorns/PEAI.png`로 고정한다. 도토리와
+동일하게 매끈한 디지털 그라데이션 채색, 광택 하이라이트, 두껍고 부드러운
+다크 초콜릿 브라운 외곽선, 둥근 검갈색 눈동자와 흰색 이중 하이라이트를
+사용한다. 수채화 번짐, 종이 질감, 연필선, 거친 잉크선은 사용하지 않는다.
+몸통은 PEAI의 모자와 연결되는 밤색, 얼굴과 배는 PEAI 몸통과 연결되는
+탄색·크림색으로 맞춘다. 배경을 제거한 투명 PNG만 런타임에서 사용하며
+생성용 크로마키 원본은 저장소에 포함하지 않는다.
+
+움직임 명칭은 `start-squirrel-curious`로 고정한다.
+
+```css
+animation:
+  start-squirrel-curious
+  5.6s
+  cubic-bezier(0.42, 0, 0.24, 1)
+  infinite;
+transform-origin: 50% 100%;
+```
+
+동작은 바닥에 발을 붙인 상태에서 주변을 살피는 흐름으로 구성한다.
+
+| 구간 | 움직임 |
+|---:|---|
+| `0–18%` | 정지 |
+| `25–32%` | 왼쪽으로 `2–4px`, 위로 `3–5px` 이동하며 `-2deg…-3deg` 기울임 |
+| `39–48%` | 제자리로 돌아오며 `scale(1.02, 0.98)`의 작은 착지 반동 |
+| `58–68%` | 오른쪽으로 `1px`, 위로 `2px` 움직여 반대편을 살핀 뒤 정착 |
+| `68–100%` | 휴지 구간 |
+
+큰 점프나 빠른 무한 흔들림은 사용하지 않는다. 사용자가 CTA를 읽는 동안
+시선을 과도하게 빼앗지 않도록 한 주기 중 절반 이상을 정지·감쇠 구간으로
+유지한다. `prefers-reduced-motion: reduce`에서는 공통 모션 규칙에 따라
+반복 동작을 중단한다.
 
 ### 21.9.11 도토리 시작 전환 애니메이션
 
@@ -1863,7 +1964,8 @@ const ZOOM_DURATION = 880;
 돋보기 확대에는 작은 DOM 요소의 `transform: scale(...)`을 사용하지 않는다.
 작은 `52×52px` 합성 레이어를 19배 확대하면 브라우저가 저해상도 래스터
 표면을 재사용해 확대 초반에 계단 현상과 픽셀 깨짐이 보일 수 있기 때문이다.
-확대 단계에서는 `.start-transition-lens`를 `390px × max(844px, 100vh)`의
+확대 단계에서는 `.start-transition-lens`를
+`390px × max(var(--screen-min-height), 100vh)`의
 전환 면으로 즉시 전환하고 다음 원형 마스크를 애니메이션한다.
 
 ```css
@@ -2301,7 +2403,6 @@ API의 `summary` 값에 포함될 수 있는 `[여유로운 감성파] 풍선 �
 
 ```tsx
 <div className="rec-item">
-  <span className="rec-category">정부지원</span>
   <div className="rec-panel">
     <p className="rec-desc">
       <strong>청년 자산형성 지원</strong>
@@ -2311,10 +2412,9 @@ API의 `summary` 값에 포함될 수 있는 `[여유로운 감성파] 풍선 �
 </div>
 ```
 
-`.rec-category`는 최소 너비 `112px`, 배경 `#9EDAF1`, 완전한 캡슐형
-모서리(`border-radius: 999px`)를 사용하여 정부지원과 은행권 문구가
-자연스러운 긴 타원 안에 들어가게 한다. `RISK SIGNAL` 라벨과 동일한
-`3px 3px 0 var(--ink)` 오프셋 음영을 적용한다.
+`.rec-item`에는 별도의 `.rec-category` 요소를 렌더링하지 않는다.
+`정부지원`, `은행권` 문구가 차지하던 라벨 높이와 하단 여백을 제거하고,
+`.rec-panel`은 `margin-top: 0`으로 그리드 상단부터 바로 시작한다.
 
 `.rec-panel`은 `12px` 둥근 모서리를 가진 사각형으로 만든다. 배경은
 베이지 `#F2DFC0`, 윤곽은 `2px` 잉크색 선을 사용하며 추천 제목과 설명만

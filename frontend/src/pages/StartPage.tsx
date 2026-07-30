@@ -83,10 +83,11 @@ export default function StartPage({
     >
       {/* Header */}
       <header className="result-header">
-        <a className="mini-brand" href="/start" aria-label="도토리 금융 DNA">
+        <a className="mini-brand" href="/start" aria-label="처음 화면으로 돌아가기">
           <span className="brand-acorn" aria-hidden="true" />
-          DOTORI DNA
+          <span>돌아가기</span>
         </a>
+        <span className="header-brand-title">DOTORI DNA</span>
         <span className="result-step">3 MIN · 7 QUESTIONS</span>
       </header>
 
@@ -129,11 +130,6 @@ export default function StartPage({
       {/* Checkpoint Note */}
       <section className="start-note">
         <span>CHECK POINT</span>
-        <h2>
-          나의 금융 위험 신호를
-          <br />
-          신호등으로 한눈에 확인해요
-        </h2>
         <div className="signal-guide">
           <img
             className="signal-illustration"
@@ -148,12 +144,10 @@ export default function StartPage({
           </div>
         </div>
         <div className="nickname-field">
-          <label htmlFor="nickname-input">
-            결과에서 사용할 닉네임을 알려주세요
-          </label>
           <input
             id="nickname-input"
             type="text"
+            aria-label="닉네임"
             maxLength={12}
             placeholder="닉네임을 입력해 주세요"
             value={nickname}
@@ -189,6 +183,35 @@ export default function StartPage({
         ref={motionAudioRef}
         src="/sounds/start-dotori-boing.wav"
         preload="auto"
+      />
+      <div className="start-bottom-detail" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+      </div>
+      <div className="start-bottom-flowers" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+      </div>
+      <img
+        className="start-squirrel"
+        src="/illustrations/start-squirrel.png"
+        alt=""
+        aria-hidden="true"
       />
     </main>
   );

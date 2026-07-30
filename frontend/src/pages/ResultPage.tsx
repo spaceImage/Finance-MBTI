@@ -112,10 +112,11 @@ export default function ResultPage() {
     <main className="result-screen">
       {/* Header */}
       <header className="result-header">
-        <a className="mini-brand" href="/start" aria-label="도토리 금융 DNA">
+        <a className="mini-brand" href="/start" aria-label="처음 화면으로 돌아가기">
           <span className="brand-acorn" aria-hidden="true" />
-          DOTORI DNA
+          <span>돌아가기</span>
         </a>
+        <span className="header-brand-title">DOTORI DNA</span>
         <span className="result-step">RESULT 01</span>
       </header>
 
@@ -174,7 +175,6 @@ export default function ResultPage() {
 
         <div className="rec-grid" aria-label="맞춤 금융 추천">
           <div className="rec-item">
-            <span className="rec-category">정부지원</span>
             <div className="rec-panel">
               <p className="rec-desc">
                 <strong>청년 자산형성 지원</strong>
@@ -193,7 +193,6 @@ export default function ResultPage() {
             </div>
           </div>
           <div className="rec-item">
-            <span className="rec-category">은행권</span>
             <div className="rec-panel">
               <p className="rec-desc">
                 <strong>청년 우대 금융상품</strong>
