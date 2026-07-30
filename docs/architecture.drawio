@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" agent="Claude Code" version="24.7.0" type="device">
+  <diagram name="DOTORI 아키텍처" id="dotori-architecture">
+    <mxGraphModel dx="1400" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1000" pageHeight="720" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Core runtime nodes -->
+        <mxCell id="client" value="React SPA&#10;Vite · :3001" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;strokeWidth=2;fontFamily=Helvetica;fontSize=13;fontStyle=1;fillColor=#FFFDF4;strokeColor=#173F29;fontColor=#173F29;" vertex="1" parent="1">
+          <mxGeometry x="40" y="160" width="160" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="server" value="FastAPI 서버&#10;진단 엔진 · :8001" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;strokeWidth=2;fontFamily=Helvetica;fontSize=13;fontStyle=1;fillColor=#FFFDF4;strokeColor=#173F29;fontColor=#173F29;" vertex="1" parent="1">
+          <mxGeometry x="300" y="160" width="170" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="db" value="SQLite&#10;dotori.db (WAL)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=14;fontFamily=Helvetica;fontSize=13;fontStyle=1;fillColor=#D9A86C;strokeColor=#7C4829;fontColor=#173F29;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="560" y="160" width="140" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- External public APIs -->
+        <mxCell id="api1" value="금융감독원&#10;finlife.fss.or.kr&#10;예·적금 실시간 금리" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;strokeWidth=2;fontFamily=Helvetica;fontSize=12;fontStyle=1;fillColor=#BFE6F2;strokeColor=#1C5B6E;fontColor=#1C5B6E;" vertex="1" parent="1">
+          <mxGeometry x="780" y="60" width="190" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="api2" value="서민금융진흥원&#10;apis.data.go.kr&#10;청년 대출상품" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;strokeWidth=2;fontFamily=Helvetica;fontSize=12;fontStyle=1;fillColor=#BFE6F2;strokeColor=#1C5B6E;fontColor=#1C5B6E;" vertex="1" parent="1">
+          <mxGeometry x="780" y="165" width="190" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="api3" value="온통청년&#10;youthcenter.go.kr&#10;청년 정책" style="rounded=1;whiteSpace=wrap;html=1;arcSize=14;strokeWidth=2;fontFamily=Helvetica;fontSize=12;fontStyle=1;fillColor=#BFE6F2;strokeColor=#1C5B6E;fontColor=#1C5B6E;" vertex="1" parent="1">
+          <mxGeometry x="780" y="270" width="190" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- Source control lane (not a deploy pipeline) -->
+        <mxCell id="localdev" value="로컬 개발" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;strokeWidth=2;fontFamily=Helvetica;fontSize=12;fontStyle=1;fillColor=#FFFDF4;strokeColor=#173F29;fontColor=#173F29;" vertex="1" parent="1">
+          <mxGeometry x="40" y="360" width="140" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="github" value="GitHub&#10;(spaceImage/Finance-MBTI)" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;strokeWidth=2;fontFamily=Helvetica;fontSize=12;fontStyle=1;fillColor=#FFFDF4;strokeColor=#173F29;fontColor=#173F29;" vertex="1" parent="1">
+          <mxGeometry x="300" y="360" width="170" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Future / not-yet-adopted infra, matching the reference screenshot's stack -->
+        <mxCell id="futurebox" value="아직 안 씀 (참고 이미지 스택)" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=8 4;strokeWidth=2;fontFamily=Helvetica;fontSize=12;fontStyle=1;verticalAlign=top;align=left;spacingTop=10;spacingLeft=12;fillColor=#EEF1EA;strokeColor=#B9C4B3;fontColor=#8A978C;" vertex="1" parent="1">
+          <mxGeometry x="560" y="380" width="410" height="200" as="geometry" />
+        </mxCell>
+
+        <mxCell id="f1" value="Docker" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=4 3;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fillColor=#FFFFFF;strokeColor=#B9C4B3;fontColor=#8A978C;" vertex="1" parent="1">
+          <mxGeometry x="580" y="420" width="110" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="f2" value="AWS EC2 / RDS / S3" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=4 3;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fillColor=#FFFFFF;strokeColor=#B9C4B3;fontColor=#8A978C;" vertex="1" parent="1">
+          <mxGeometry x="700" y="420" width="130" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="f3" value="GitHub Actions CI/CD" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=4 3;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fillColor=#FFFFFF;strokeColor=#B9C4B3;fontColor=#8A978C;" vertex="1" parent="1">
+          <mxGeometry x="840" y="420" width="120" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="f4" value="Redis" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=4 3;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fillColor=#FFFFFF;strokeColor=#B9C4B3;fontColor=#8A978C;" vertex="1" parent="1">
+          <mxGeometry x="580" y="466" width="110" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="f5" value="MySQL" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=4 3;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fillColor=#FFFFFF;strokeColor=#B9C4B3;fontColor=#8A978C;" vertex="1" parent="1">
+          <mxGeometry x="700" y="466" width="130" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="f6" value="Firebase" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=4 3;strokeWidth=1.5;fontFamily=Helvetica;fontSize=11;fillColor=#FFFFFF;strokeColor=#B9C4B3;fontColor=#8A978C;" vertex="1" parent="1">
+          <mxGeometry x="840" y="466" width="120" height="36" as="geometry" />
+        </mxCell>
+
+        <!-- Edges: runtime request path -->
+        <mxCell id="e1" value="Request / Response" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;fontFamily=Helvetica;fontSize=11;fontStyle=1;labelBackgroundColor=#FFF7DF;startArrow=block;startFill=1;endArrow=block;endFill=1;strokeColor=#173F29;fontColor=#4D6A5B;" edge="1" parent="1" source="client" target="server">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e2" value="Read / Write" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;fontFamily=Helvetica;fontSize=11;fontStyle=1;labelBackgroundColor=#FFF7DF;startArrow=block;startFill=1;endArrow=block;endFill=1;strokeColor=#173F29;fontColor=#4D6A5B;" edge="1" parent="1" source="server" target="db">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e3" value="HTTP GET · 6h 캐시 · 실패 시 폴백" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;fontFamily=Helvetica;fontSize=11;fontStyle=1;labelBackgroundColor=#FFF7DF;endArrow=block;endFill=1;startArrow=none;strokeColor=#1C5B6E;fontColor=#1C5B6E;exitX=1;exitY=0.25;exitDx=0;exitDy=0;" edge="1" parent="1" source="server" target="api1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;endArrow=block;endFill=1;startArrow=none;strokeColor=#1C5B6E;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="server" target="api2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;endArrow=block;endFill=1;startArrow=none;strokeColor=#1C5B6E;exitX=1;exitY=0.75;exitDx=0;exitDy=0;" edge="1" parent="1" source="server" target="api3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Edge: source control (separate from runtime) -->
+        <mxCell id="e6" value="git push" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;fontFamily=Helvetica;fontSize=11;fontStyle=1;labelBackgroundColor=#FFF7DF;endArrow=block;endFill=1;startArrow=none;strokeColor=#173F29;fontColor=#4D6A5B;dashed=1;" edge="1" parent="1" source="localdev" target="github">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Legend -->
+        <mxCell id="legend" value="■ 프론트/백엔드 (크림)   ■ 데이터 저장 (탠)   ■ 외부 공공 API (스카이)   ┄ 미도입 인프라" style="text;html=1;align=left;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=#4D6A5B;" vertex="1" parent="1">
+          <mxGeometry x="40" y="620" width="600" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
