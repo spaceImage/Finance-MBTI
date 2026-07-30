@@ -148,9 +148,6 @@ export default function StartPage({
           </div>
         </div>
         <div className="nickname-field">
-          <label htmlFor="nickname-input">
-            결과에서 사용할 닉네임을 알려주세요
-          </label>
           <input
             id="nickname-input"
             type="text"

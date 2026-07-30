@@ -86,8 +86,7 @@ export default function ResultPage() {
         <div className="hero-cloud-a" aria-hidden="true" />
         <div className="hero-cloud-b" aria-hidden="true" />
         <div className="hero-type-badge">
-          <span className="hero-type-code">{code}</span>
-          <span className="hero-type-label">{data.combined_label}</span>
+          <span className="hero-type-label">{data.character_name || typeName}</span>
         </div>
         <div className="hero-title-area">
           {nickname && (
@@ -136,7 +135,6 @@ export default function ResultPage() {
 
         <div className="rec-grid" aria-label="맞춤 금융 추천">
           <div className="rec-item">
-            <span className="rec-category">정부지원</span>
             <div className="rec-panel">
               <p className="rec-desc">
                 <strong>청년 자산형성 지원</strong>
@@ -145,7 +143,6 @@ export default function ResultPage() {
             </div>
           </div>
           <div className="rec-item">
-            <span className="rec-category">은행권</span>
             <div className="rec-panel">
               <p className="rec-desc">
                 <strong>청년 우대 금융상품</strong>

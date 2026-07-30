@@ -92,16 +92,6 @@ export default function SurveyPage({
   const displayTotal = String(totalQuestions).padStart(2, "0");
   const isLast = currentIndex === totalQuestions - 1;
 
-  const categoryIcons: Record<string, string> = {
-    소비: "💰",
-    저축: "🏦",
-    투자: "📈",
-    보험: "🛡️",
-    부채: "📊",
-    금융지식: "📚",
-    위기대응: "⚡",
-  };
-
   return (
     <main className="mobile-screen">
       {/* Header */}
@@ -111,7 +101,7 @@ export default function SurveyPage({
           DOTORI DNA
         </a>
         <span className="result-step">
-          QUESTION {displayNum} / {displayTotal}
+          {displayTotal} QUESTIONS
         </span>
       </header>
 
@@ -128,12 +118,8 @@ export default function SurveyPage({
 
       {/* Question Card */}
       <div className="question-card">
-        <span className="question-sticker">Q. {displayNum}</span>
-        <span className="question-icon">
-          {categoryIcons[currentQuestion.category] || "💡"}
-        </span>
-        <span className="question-category">
-          {currentQuestion.category?.toUpperCase()}
+        <span className="question-sticker">
+          Q{currentIndex + 1}. {currentQuestion.category.replace(/^Q\d+\.\s*/, "").replace(/\s*Q\d+$/, "")}
         </span>
         <h1>{currentQuestion.question}</h1>
       </div>

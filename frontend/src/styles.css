@@ -15,8 +15,10 @@ body {
 }
 
 body {
-  display: grid;
-  place-items: start start;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
 }
 
 button,
@@ -57,7 +59,7 @@ a {
 .mobile-screen,
 .result-screen {
   width: 390px;
-  min-height: 844px;
+  min-height: 100vh;
   padding-top: 18px;
   padding-right: 16px;
   padding-bottom: 24px;
@@ -665,7 +667,7 @@ a {
 
 .start-note h2 {
   margin: 0 0 8px;
-  font-size: 20px;
+  font-size: 15px;
   line-height: 1.4;
   letter-spacing: -0.04em;
 }
