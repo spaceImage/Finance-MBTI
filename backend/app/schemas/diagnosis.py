@@ -46,6 +46,7 @@ class ProductRecommendation(BaseModel):
     tag: str
     items: Optional[List[str]] = Field(default_factory=list)
     is_live: bool = False
+    url: Optional[str] = None
 
 class SubmitDiagnosisResponse(BaseModel):
     session_uuid: str

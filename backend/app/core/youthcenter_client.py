@@ -132,3 +132,117 @@ def fetch_finance_youth_policies() -> list[dict]:
     raw = fetch_raw_policies(lclsf_nm=FINANCE_LCLSF_NAME)
     finance_only = [p for p in raw if p.get("mclsfNm") == FINANCE_MCLSF_NAME]
     return [p for p in finance_only if not _mentions_region(p)]
+
+
+# ── MBTI 유형별 고정 정책(types.json의 "policy" 필드)에 대응하는 실제 API 검색 키워드.
+# types.json 16개 유형이 실제로는 이 4개 정책명으로만 귀결되기 때문에, 이름 그대로
+# 검색해서 실제 API 결과 중 동일한 정책이 있으면 그걸 최우선으로 쓴다.
+EXACT_NAME_KEYWORDS: dict[str, list[str]] = {
+    "청년내일저축계좌": ["청년내일저축계좌", "청년내일"],
+    "청년도약계좌": ["청년도약계좌", "청년도약"],
+    "디딤씨앗통장": ["디딤씨앗"],
+    "청년형 ISA": ["ISA"],
+}
+
+# 온통청년 API는 최근 100건 스냅샷만 주기 때문에, 유형의 대표 정책명이 이번 응답에
+# 없을 수도 있다. 이때는 같은 "성격"의 정책으로 대체한다.
+CATEGORY_FALLBACK_KEYWORDS: dict[str, list[str]] = {
+    "청년내일저축계좌": ["저축", "적금", "자산형성"],
+    "청년도약계좌": ["저축", "적금", "자산형성"],
+    "디딤씨앗통장": ["자립지원", "자립정착금", "자립수당", "보호종료"],
+    "청년형 ISA": ["투자", "금융교육", "상담"],
+}
+
+# 위험신호(RED)일 때는 유형 매칭보다 이 규칙이 항상 우선한다: 빚을 지게 하는 정책은 노출하지 않는다.
+LOAN_KEYWORDS = ["대출", "신용대출", "융자"]
+
+
+def _policy_text(policy: dict) -> str:
+    return f"{policy.get('plcyNm', '')} {policy.get('plcyKywdNm', '')} {policy.get('plcyExplnCn', '')}"
+
+
+def _is_loan_policy(policy: dict) -> bool:
+    text = _policy_text(policy)
+    return any(kw in text for kw in LOAN_KEYWORDS)
+
+
+def _is_bare_domain(url: str) -> bool:
+    """경로/쿼리 없이 도메인만 있는 URL인지 (예: "www.bokjiro.go.kr", "https://www.bokjiro.go.kr/")."""
+    stripped = url.strip()
+    for prefix in ("https://", "http://"):
+        if stripped.startswith(prefix):
+            stripped = stripped[len(prefix):]
+            break
+    path = stripped.split("/", 1)[1] if "/" in stripped else ""
+    return path.strip("/") == ""
+
+
+def _find_by_keywords(policies: list[dict], keywords: list[str]) -> dict | None:
+    """
+    키워드에 걸리는 정책들 중, 홈페이지 루트가 아니라 실제 상세페이지(딥링크)를
+    가진 것을 우선한다. 같은 정책명이 여러 지자체에서 중복 등록돼 있을 때,
+    딥링크가 없는 항목(예: 루트 도메인만 있는 항목)보다 실제 상세페이지가
+    있는 항목을 보여주기 위함이다.
+    """
+    matches = [p for p in policies if any(kw in _policy_text(p) for kw in keywords)]
+    if not matches:
+        return None
+
+    for policy in matches:
+        url = extract_policy_url(policy)
+        if url and not _is_bare_domain(url):
+            return policy
+
+    return matches[0]
+
+
+def pick_real_policy(static_policy_name: str, risk_color: str) -> dict | None:
+    """
+    유형에 고정된 정책명(static_policy_name, 예: "청년내일저축계좌")과 가장 가까운
+    실제 API 정책을 찾는다. RED(위험 신호)일 때는 대출성 정책을 먼저 제외한 뒤 찾는다.
+    """
+    policies = fetch_finance_youth_policies()
+
+    if risk_color == "RED":
+        policies = [p for p in policies if not _is_loan_policy(p)]
+
+    if not policies:
+        return None
+
+    exact = _find_by_keywords(policies, EXACT_NAME_KEYWORDS.get(static_policy_name, []))
+    if exact:
+        return exact
+
+    fallback = _find_by_keywords(policies, CATEGORY_FALLBACK_KEYWORDS.get(static_policy_name, []))
+    if fallback:
+        return fallback
+
+    return policies[0]
+
+
+def _ensure_scheme(url: str) -> str:
+    # 온통청년 API가 "www.bokjiro.go.kr"처럼 스킴 없는 URL을 줄 때가 있어,
+    # 그대로 href에 쓰면 상대경로로 취급돼 링크가 깨진다.
+    if not url.startswith(("http://", "https://")):
+        return f"https://{url}"
+    return url
+
+
+def extract_policy_url(policy: dict) -> str:
+    """
+    신청 URL을 우선으로, 없으면 참고 URL을 반환한다.
+    단, 루트 도메인뿐인 값(예: "www.bokjiro.go.kr")보다 실제 상세페이지 딥링크가
+    있으면 그쪽을 우선한다 — 여러 필드 중 아무거나 먼저 채워진 걸 쓰면 정작
+    유용한 상세페이지 대신 사이트 첫 화면으로 보내버릴 수 있기 때문이다.
+    """
+    candidates = [policy.get(field, "").strip() for field in ("aplyUrlAddr", "refUrlAddr1", "refUrlAddr2")]
+    candidates = [c for c in candidates if c]
+
+    for value in candidates:
+        if not _is_bare_domain(value):
+            return _ensure_scheme(value)
+
+    if candidates:
+        return _ensure_scheme(candidates[0])
+
+    return ""

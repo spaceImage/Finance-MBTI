@@ -27,6 +27,7 @@ export interface ProductRecommendation {
   tag: string;
   items?: string[];
   is_live?: boolean;
+  url?: string | null;
 }
 
 export interface SubmitDiagnosisResponse {

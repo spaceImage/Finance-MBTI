@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import html2canvas from "html2canvas";
 import { SubmitDiagnosisResponse } from "../services/api";
 
 const TYPE_NAMES: Record<string, string> = {
@@ -46,6 +47,8 @@ const DEFAULT_RESULT: SubmitDiagnosisResponse = {
 export default function ResultPage() {
   const [data, setData] = useState<SubmitDiagnosisResponse>(DEFAULT_RESULT);
   const [nickname, setNickname] = useState("");
+  const [saving, setSaving] = useState(false);
+  const captureRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     // Load nickname
@@ -69,6 +72,41 @@ export default function ResultPage() {
   const typeNameWithoutSuffix = typeName.replace(/\s*도토리$/, "");
   const hasDotoriSuffix = typeNameWithoutSuffix !== typeName;
   const risk = RISK_MAP[data.risk_color] || RISK_MAP.GREEN;
+  const policyRec = data.recommended_products.find(
+    (item) => item.category === "정부 청년정책"
+  );
+  const productRec = data.recommended_products.find(
+    (item) => item.category === "실제 금융상품"
+  );
+
+  const handleSaveResult = async () => {
+    if (!captureRef.current || saving) return;
+    setSaving(true);
+    try {
+      const canvas = await html2canvas(captureRef.current, {
+        backgroundColor: "#fff7df",
+        scale: 2,
+        useCORS: true,
+      });
+
+      const blob: Blob | null = await new Promise((resolve) =>
+        canvas.toBlob(resolve, "image/png")
+      );
+      if (!blob) return;
+
+      const url = URL.createObjectURL(blob);
+      const filenameSafeNickname = nickname.replace(/[^\p{L}\p{N}_-]/gu, "");
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `dotori-result-${filenameSafeNickname || code}.png`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      URL.revokeObjectURL(url);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <main className="result-screen">
@@ -82,7 +120,7 @@ export default function ResultPage() {
       </header>
 
       {/* Hero Card */}
-      <section className="hero-card">
+      <section className="hero-card" ref={captureRef}>
         <div className="hero-cloud-a" aria-hidden="true" />
         <div className="hero-cloud-b" aria-hidden="true" />
         <div className="hero-type-badge">
@@ -142,6 +180,16 @@ export default function ResultPage() {
                 <strong>청년 자산형성 지원</strong>
                 자립준비청년이 활용할 수 있는 정부지원금과 자산형성 제도를 확인해 보세요.
               </p>
+              {policyRec?.url && (
+                <a
+                  className="rec-link"
+                  href={policyRec.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {policyRec.name || "정책 자세히 보기"} →
+                </a>
+              )}
             </div>
           </div>
           <div className="rec-item">
@@ -151,6 +199,16 @@ export default function ResultPage() {
                 <strong>청년 우대 금융상품</strong>
                 우대금리 적금과 수수료 혜택 등 은행권의 청년 맞춤 상품을 비교해 보세요.
               </p>
+              {productRec?.url && (
+                <a
+                  className="rec-link"
+                  href={productRec.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {productRec.name || "상품 자세히 보기"} →
+                </a>
+              )}
             </div>
           </div>
         </div>
@@ -182,11 +240,10 @@ export default function ResultPage() {
       <button
         type="button"
         className="save-button"
-        onClick={() => {
-          alert("결과가 저장되었습니다!");
-        }}
+        onClick={handleSaveResult}
+        disabled={saving}
       >
-        결과 저장하기
+        {saving ? "이미지 만드는 중..." : "결과 저장하기"}
       </button>
     </main>
   );
