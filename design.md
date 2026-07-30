@@ -1456,7 +1456,8 @@ main.mobile-screen.start-screen
 │  │  │  └─ strong "금융 DNA"
 │  │  └─ span "TEST"
 │  ├─ img.start-character-image
-│  ├─ div.start-transition-lens
+│  ├─ div.start-transition-lens-fill[data-lens-fill-origin="x-118px-y-412px"]
+│  ├─ span.start-transition-lens-fixed-border[data-lens-hero-center="x-102px-y-356px"]
 │  └─ div.start-hill
 ├─ section.start-note
 │  ├─ span "CHECK POINT"
@@ -1790,6 +1791,7 @@ base_color: "#5F9F5B"
 opacity_range: 0.50..0.72
 cluster_height_range: 13px..52px
 pointer_events: none
+horizontal_flip: scaleX(-1)
 aria_hidden: true
 ```
 
@@ -1854,22 +1856,36 @@ pointer_events: none
 
 ```css
 animation:
-  start-squirrel-curious
-  5.6s
-  cubic-bezier(0.42, 0, 0.24, 1)
+  start-squirrel-hop
+  5.8s
+  cubic-bezier(0.34, 0, 0.18, 1)
   infinite;
 transform-origin: 50% 100%;
 ```
 
-동작은 바닥에 발을 붙인 상태에서 주변을 살피는 흐름으로 구성한다.
+다람쥐 이미지는 원본 PNG를 변경하지 않고 모든 키프레임의 `transform`에
+`scaleX(-1)`을 포함해 좌우 반전한다. 정지·이동·착지·감쇠 프레임 전체에서
+반전 값을 유지하여 애니메이션 도중 원래 방향으로 되돌아가면 안 된다.
+
+동작은 `준비 → 짧은 점프 → 착지 반동 → 주변 살핌 → 휴지`로 구성한다.
+이동은 레이아웃 기준 정수 CSS 픽셀을 사용하며 최대 가로 이동은 `2px`,
+최대 위쪽 이동은 `6px`이다. 회전과 가로 확대는 사용하지 않는다. 세로
+비율만 `0.97–1.02` 범위에서 바꾸고 `transform-origin: 50% 100%`를
+유지하여 발바닥을 기준으로 준비 동작과 착지 반동을 표현한다.
 
 | 구간 | 움직임 |
 |---:|---|
-| `0–18%` | 정지 |
-| `25–32%` | 왼쪽으로 `2–4px`, 위로 `3–5px` 이동하며 `-2deg…-3deg` 기울임 |
-| `39–48%` | 제자리로 돌아오며 `scale(1.02, 0.98)`의 작은 착지 반동 |
-| `58–68%` | 오른쪽으로 `1px`, 위로 `2px` 움직여 반대편을 살핀 뒤 정착 |
-| `68–100%` | 휴지 구간 |
+| `0–18%` | `translate(0, 0) scaleY(1)`로 정지 |
+| `22%` | `translate(0, 1px) scaleY(0.98)`로 몸을 낮추는 준비 동작 |
+| `28%` | `translate(-1px, -3px) scaleY(1.01)`로 점프 시작 |
+| `34%` | `translate(-2px, -6px) scaleY(1.02)`로 최고점 도달 |
+| `40%` | `translate(-1px, -2px) scaleY(1)`로 하강 |
+| `44%` | `translate(0, 1px) scaleY(0.97)`로 착지 |
+| `49%` | `translate(0, -1px) scaleY(1.005)`로 작은 반동 |
+| `54%` | `translate(0, 0) scaleY(1)`로 안정 |
+| `64%` | `translate(1px, -1px) scaleY(1)`로 주변을 한 번 살핌 |
+| `69%` | `translate(0, 0) scaleY(1)`로 복귀 |
+| `76–100%` | 완전 정지 |
 
 큰 점프나 빠른 무한 흔들림은 사용하지 않는다. 사용자가 CTA를 읽는 동안
 시선을 과도하게 빼앗지 않도록 한 주기 중 절반 이상을 정지·감쇠 구간으로
@@ -1907,8 +1923,14 @@ transform: translateX(-69px) translateY(-7px) rotate(-4deg);
 transform: translateX(-63px) translateY(2px) rotate(3deg);
 ```
 
-돋보기 확대 원 `.start-transition-lens`는 `.start-hero` 기준
-`left: 80px`, `top: 328px`, `52×52px`, `4px` 잉크색 테두리로 배치한다.
+돋보기 확대 채움 원과 검은 테두리는 별도 형제 요소로 구현한다. DOM 순서는
+`.start-transition-lens-fill`이 먼저, `.start-transition-lens-fixed-border`가
+나중이어야 한다. 테두리는 `z-index: 31`, 채움 면은 `z-index: 30`으로
+테두리가 항상 채움 원 위에 보이게 한다.
+
+`.start-hero` 기준 고정 테두리 중심은 정확히 `(102px, 356px)`, 크기는
+`48×48px`, 테두리 두께는 `4px`이다. 전체 전환 면이 `left: -16px`,
+`top: -56px`에 있으므로 채움 원 내부 좌표는 정확히 `(118px, 412px)`이다.
 이는 중앙으로 이동한 `PEAI.png`의 돋보기 렌즈 위치와 겹쳐야 한다. 확대
 중 배경은 `--paper`, 내부 보조 테두리는 하늘색 `rgba(158, 218, 241,
 0.7)`을 사용한다. 렌즈 안에는 별도 안내 문구를 표시하지 않으며, 확대가
@@ -1964,14 +1986,17 @@ const ZOOM_DURATION = 880;
 돋보기 확대에는 작은 DOM 요소의 `transform: scale(...)`을 사용하지 않는다.
 작은 `52×52px` 합성 레이어를 19배 확대하면 브라우저가 저해상도 래스터
 표면을 재사용해 확대 초반에 계단 현상과 픽셀 깨짐이 보일 수 있기 때문이다.
-확대 단계에서는 `.start-transition-lens`를
+확대 단계에서는 `.start-transition-lens-fill`을
 `390px × max(var(--screen-min-height), 100vh)`의
 전환 면으로 즉시 전환하고 다음 원형 마스크를 애니메이션한다.
 
 ```css
-/* 화면 좌상단 기준 PEAI 이미지의 실제 렌즈 중심: x=118px, y=412px */
-clip-path: circle(24px at 118px 412px);   /* 0~24%, 돋보기 형태 유지 */
-clip-path: circle(31px at 118px 412px);   /* 34%, 확대 시작 */
+--lens-fill-origin-x: 118px;
+--lens-fill-origin-y: 412px;
+--lens-start-radius: 24px;
+
+clip-path: circle(24px at 118px 412px);   /* 0~24% */
+clip-path: circle(31px at 118px 412px);   /* 34% */
 clip-path: circle(180px at 118px 412px);  /* 52% */
 clip-path: circle(1120px at 118px 412px); /* 100% */
 ```
@@ -1984,10 +2009,25 @@ clip-path: circle(1120px at 118px 412px); /* 100% */
 흔들릴 때 렌즈와 별도 원의 위치가 어긋나는 현상이 없다.
 
 `zooming` 시작 후 첫 `24%` 동안은 `48×48px` 돋보기 테두리와 `24px`
-마스크 반경을 그대로 유지한다. `24%` 이후에만 마스크를 확장하며 테두리는
-`48%`까지 `scale(1.24)`와 함께 자연스럽게 사라진다. 확대 중 레이아웃
+마스크 반경을 그대로 유지한다. `24%` 이후에는 채움 원의 반경만 확대한다.
+검은 테두리는 `transform: none`을 전 구간에 유지하여 위치와 크기를 절대
+변경하지 않고, `34~48%` 구간에서 불투명도만 낮춰 사라진다. 확대 단계의
+도토리 이미지 역시 `translateX(-66px) translateY(0) rotate(0) scale(1)`로
+고정하고 불투명도만 낮춰 PNG에 포함된 원본 테두리가 흔들리지 않게 한다.
+확대 중 레이아웃
 콘텐츠보다 항상 위에 표시되도록 `.animation-zooming .start-hero`와 전환
 면의 `z-index`를 `30`으로 설정한다. 렌즈 내부 안내 문구는 렌더링하지 않는다.
+
+```yaml
+fill_animation: lens-fill-circle-expand
+fixed_border_animation: lens-fixed-border-fade
+hero_border_center: [102px, 356px]
+fill_surface_origin: [118px, 412px]
+radius_keyframes: [24px, 31px, 180px, 1120px]
+stack_order:
+  fill: 30
+  fixed_border: 31
+```
 
 느낌표는 `.start-alert-mark`로 구현한다. `centering` 시작과 동시에
 `840ms cubic-bezier(0.18, 0.9, 0.24, 1.2)` 등장 애니메이션을 실행하고,
@@ -2373,6 +2413,25 @@ gap: 10px;
 
 결과 유형 제목 `.hero-type-name`은 짙은 외곽선을 유지하되 `text-shadow`를
 적용하지 않는다.
+
+API의 `mbti_code`가 `FEAI-YELLOW`, `PEAI-GREEN`, `FVRS-RED`처럼 위험
+신호 접미사를 포함해도 결과 화면에는 금융 DNA 코드만 표시한다. 렌더링과
+도토리 이미지 경로에 사용하기 전에 다음 규칙으로 정규화한다.
+
+```ts
+const code = rawCode.replace(/-(GREEN|YELLOW|RED)$/i, "");
+```
+
+따라서 결과 상단에는 `FEAI`만 표시하며 `-GREEN`, `-YELLOW`, `-RED`는
+노출하지 않는다. 위험 단계는 위험 신호 카드에서만 한국어 단계명으로
+표시한다.
+
+오른쪽 `.hero-type-label`에 전달되는 `combined_label`에도
+`PERI-RED [조력기반 성장의 힘] 가이드 탑승 모험 도토리`처럼 유형 코드와
+위험 접미사가 포함될 수 있다. 유형 코드는 왼쪽 `.hero-type-code`에서 이미
+표시하므로 설명 라벨에서는 선행 유형 코드와 위험 접미사를 함께 제거한다.
+따라서 오른쪽 라벨은 `[조력기반 성장의 힘] 가이드 탑승 모험 도토리`로
+표시한다.
 
 유형명 끝의 `도토리`는 단어 중간에서 줄바꿈하면 안 된다. 유형명 본문과
 `도토리`를 각각 블록 요소로 렌더링해 다음 형태를 보장한다.

@@ -67,7 +67,11 @@ export default function ResultPage() {
     }
   }, []);
 
-  const code = data.mbti_code || "PEAI";
+  const rawCode = data.mbti_code || "PEAI";
+  const code = rawCode.replace(/-(GREEN|YELLOW|RED)$/i, "");
+  const displayCombinedLabel = data.combined_label
+    .replace(/^[A-Z]{4}(?:-(?:GREEN|YELLOW|RED))?\s*/i, "")
+    .trim();
   const typeName = TYPE_NAMES[code] || data.character_name || "탐구 도토리";
   const typeNameWithoutSuffix = typeName.replace(/\s*도토리$/, "");
   const hasDotoriSuffix = typeNameWithoutSuffix !== typeName;
@@ -147,7 +151,7 @@ export default function ResultPage() {
         <div className="hero-cloud-b" aria-hidden="true" />
         <div className="hero-type-badge">
           <span className="hero-type-code">{code}</span>
-          <span className="hero-type-label">{data.combined_label}</span>
+          <span className="hero-type-label">{displayCombinedLabel}</span>
         </div>
         <div className="hero-title-area">
           {nickname && (
