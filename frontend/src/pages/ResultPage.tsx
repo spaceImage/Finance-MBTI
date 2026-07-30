@@ -83,11 +83,32 @@ export default function ResultPage() {
     if (!captureRef.current || saving) return;
     setSaving(true);
     try {
-      const canvas = await html2canvas(captureRef.current, {
+      const scale = 2;
+      const rendered = await html2canvas(captureRef.current, {
         backgroundColor: "#fff7df",
-        scale: 2,
+        scale,
         useCORS: true,
       });
+
+      // hero-card의 box-shadow까지 그대로 캡처되면 둥근 모서리와 달리 그림자 끝이
+      // 각지게 잘려 어색해 보인다. 테두리선 안쪽으로 살짝 잘라내 이를 가린다.
+      const inset = 10 * scale;
+      const canvas = document.createElement("canvas");
+      canvas.width = rendered.width - inset * 2;
+      canvas.height = rendered.height - inset * 2;
+      canvas
+        .getContext("2d")
+        ?.drawImage(
+          rendered,
+          inset,
+          inset,
+          canvas.width,
+          canvas.height,
+          0,
+          0,
+          canvas.width,
+          canvas.height,
+        );
 
       const blob: Blob | null = await new Promise((resolve) =>
         canvas.toBlob(resolve, "image/png")
