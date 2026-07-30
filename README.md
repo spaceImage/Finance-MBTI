@@ -1,14 +1,14 @@
 # 🌰 DOTORI - 금융 투자 성향 진단 PoC
 
-FastAPI + React(Vite) + SQLite 기반의 금융 MBTI 및 위험도 신호등(🟢/🟡/🔴) 이중 진단 시스템입니다.
+React SPA + FastAPI 백엔드 + SQLite 기반의 금융 MBTI 및 위험도 진단 시스템입니다.
 
 ## 🏗️ 시스템 구성
 
 ```
-[React/Vite 클라이언트 (Port 3001)]
-        │  (HTTP POST/GET)
+[React SPA (Port 3001)]
+        │  HTTP API
         ▼
-  [FastAPI 서버 (Port 8001)]
+  [FastAPI 백엔드 (Port 8001)]
         │  (동기 계산 및 DB 저장)
         ├──▶ [SQLite 파일 (dotori.db)]
         │
@@ -31,20 +31,22 @@ KINFA_API_KEY=        # data.go.kr 발급, "디코딩" 키 사용 (서민금융�
 YOUTHCENTER_API_KEY=  # youthcenter.go.kr 마이페이지 > OPEN API 승인 후 발급
 ```
 
-### 1. 백엔드 실행 (FastAPI - Port 8001)
+### 1. FastAPI 백엔드 실행
 ```bash
 cd backend
 pip install -r requirements.txt
 python app/main.py
 ```
-> 백엔드가 구동되면 `http://localhost:8001/docs` 에서 Swagger API문서를 확인할 수 있습니다.
 
-### 2. 프론트엔드 실행 (React - Port 3001)
+### 2. React SPA 실행
 ```bash
 cd frontend
-cmd /c npm run dev
+npm install
+npm run dev
 ```
-> 브라우저에서 `http://localhost:3001` 접속
+
+> 브라우저에서 `http://localhost:3001/start` 접속
+> API 문서는 `http://localhost:8001/docs`에서 확인
 
 ---
 
