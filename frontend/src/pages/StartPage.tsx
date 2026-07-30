@@ -123,7 +123,16 @@ export default function StartPage({
           alt="돋보기로 금융 생활을 살펴보는 탐구 도토리"
         />
         <span className="start-alert-mark" aria-hidden="true">!</span>
-        <div className="start-transition-lens" aria-hidden="true" />
+        <div
+          className="start-transition-lens-fill"
+          data-lens-fill-origin="x-118px-y-412px"
+          aria-hidden="true"
+        />
+        <span
+          className="start-transition-lens-fixed-border"
+          data-lens-hero-center="x-102px-y-356px"
+          aria-hidden="true"
+        />
         <div className="start-hill" aria-hidden="true" />
       </section>
 
