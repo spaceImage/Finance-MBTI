@@ -83,6 +83,7 @@ a {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  position: relative;
   font-size: 10px;
   font-weight: 900;
   letter-spacing: 0.12em;
@@ -92,7 +93,17 @@ a {
   display: flex;
   align-items: center;
   gap: 7px;
+  color: var(--ink);
   text-decoration: none;
+}
+
+.header-brand-title {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  color: var(--ink);
+  white-space: nowrap;
+  transform: translateX(-50%);
 }
 
 .brand-acorn {
@@ -111,6 +122,20 @@ a {
 .result-step {
   padding-top: 4px;
   color: #547365;
+}
+
+@media (max-width: 380px) {
+  .result-step {
+    max-width: 96px;
+    font-size: 8px;
+    letter-spacing: 0.04em;
+    text-align: right;
+  }
+
+  .header-brand-title {
+    font-size: 9px;
+    letter-spacing: 0.08em;
+  }
 }
 
 /* ===== 21.9 /start ===== */

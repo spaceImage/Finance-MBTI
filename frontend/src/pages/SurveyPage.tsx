@@ -33,10 +33,11 @@ export default function SurveyPage({
     return (
       <main className="mobile-screen">
         <header className="result-header">
-          <a className="mini-brand" href="/start" aria-label="도토리 금융 DNA">
+          <a className="mini-brand" href="/start" aria-label="처음 화면으로 돌아가기">
             <span className="brand-acorn" aria-hidden="true" />
-            DOTORI DNA
+            <span>돌아가기</span>
           </a>
+          <span className="header-brand-title">DOTORI DNA</span>
         </header>
         <div className="status-message">
           <span className="status-spinner">🌰</span>
@@ -50,10 +51,11 @@ export default function SurveyPage({
     return (
       <main className="mobile-screen">
         <header className="result-header">
-          <a className="mini-brand" href="/start" aria-label="도토리 금융 DNA">
+          <a className="mini-brand" href="/start" aria-label="처음 화면으로 돌아가기">
             <span className="brand-acorn" aria-hidden="true" />
-            DOTORI DNA
+            <span>돌아가기</span>
           </a>
+          <span className="header-brand-title">DOTORI DNA</span>
         </header>
         <div className="status-message">
           <p>{error}</p>
@@ -73,10 +75,11 @@ export default function SurveyPage({
     return (
       <main className="mobile-screen">
         <header className="result-header">
-          <a className="mini-brand" href="/start" aria-label="도토리 금융 DNA">
+          <a className="mini-brand" href="/start" aria-label="처음 화면으로 돌아가기">
             <span className="brand-acorn" aria-hidden="true" />
-            DOTORI DNA
+            <span>돌아가기</span>
           </a>
+          <span className="header-brand-title">DOTORI DNA</span>
         </header>
         <div className="status-message">
           <span className="status-spinner">🌰</span>
@@ -106,10 +109,11 @@ export default function SurveyPage({
     <main className="mobile-screen">
       {/* Header */}
       <header className="result-header">
-        <a className="mini-brand" href="/start" aria-label="도토리 금융 DNA">
+        <a className="mini-brand" href="/start" aria-label="처음 화면으로 돌아가기">
           <span className="brand-acorn" aria-hidden="true" />
-          DOTORI DNA
+          <span>돌아가기</span>
         </a>
+        <span className="header-brand-title">DOTORI DNA</span>
         <span className="result-step">
           QUESTION {displayNum} / {displayTotal}
         </span>
